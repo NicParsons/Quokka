@@ -34,11 +34,11 @@ final class Recording {
 		}
 
 		var description: String {
-			return "diary entry for \(creationDate.formatted(date: .abbreviated, time: .omitted)) at \(creationDate.formatted(date: .omitted, time: .shortened))"
+			return "audio recording for \(creationDate.formatted(date: .abbreviated, time: .omitted)) at \(creationDate.formatted(date: .omitted, time: .shortened))"
 		}
 
 		var shortDescription: String {
-			return "entry at \(timeStamp)"
+			return "recording at \(timeStamp)"
 		}
 
 		func duration() async -> Int {

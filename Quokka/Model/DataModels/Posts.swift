@@ -27,11 +27,11 @@ extension Array where Element: Post {
 
 extension Post {
 	var description: String {
-		return "diary entry for \(creationDate.formatted(date: .abbreviated, time: .omitted)) at \(creationDate.formatted(date: .omitted, time: .shortened))"
+		return "diary entry from \(author.name) for \(date.formatted(date: .abbreviated, time: .omitted)) at \(date.formatted(date: .omitted, time: .shortened))"
 	}
 
 	var shortDescription: String {
-		return "post at \(timeStamp)"
+		return "post by \(author.name) at \(timeStamp)"
 	}
 
 	var timeStamp: String {

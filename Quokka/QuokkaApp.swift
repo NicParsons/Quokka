@@ -1,18 +1,12 @@
-//
-//  QuokkaApp.swift
-//  Quokka
-//
-//  Created by Nicholas Parsons on 16/5/2025.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct QuokkaApp: App {
+	@State private var model = Model()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+			Post.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -26,7 +20,26 @@ struct QuokkaApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-        }
+				.environment(model)
+#if os(iOS)
+.accessibilityAction(.magicTap) {
+if model.isPlaying {
+	model.pause()
+} else if model.isRecording {
+	model.stopRecording()
+} else {
+	/* we can do this once we add property to model to detect whether playback is paused
+	model.resumePlayback()
+	 */
+	model.startRecording()
+} // end if
+} // magic tap action
+#endif
+        } // window group
         .modelContainer(sharedModelContainer)
-    }
-}
+		.commands {
+			FileMenu()
+			PlaybackControlsMenu()
+		} // commands
+    } // body
+} // app

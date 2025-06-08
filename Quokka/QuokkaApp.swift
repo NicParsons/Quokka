@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct QuokkaApp: App {
 	@State private var model = Model()
+	@State private var session = SessionManager()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
 			Post.self,
@@ -21,6 +22,7 @@ struct QuokkaApp: App {
         WindowGroup {
             ContentView()
 				.environment(model)
+				.environment(session)
 #if os(iOS)
 .accessibilityAction(.magicTap) {
 if model.isPlaying {

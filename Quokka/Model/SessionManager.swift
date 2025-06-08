@@ -13,6 +13,11 @@ final class SessionManager {
 
 	var user: User?
 
+	func createAccount(for newUser: User) {
+		username = newUser.name
+		user = newUser
+	}
+
 	func login(context: ModelContext) throws {
 		if let username = self.username {
 			let descriptor = FetchDescriptor<User>(predicate: User.predicate(name: username))

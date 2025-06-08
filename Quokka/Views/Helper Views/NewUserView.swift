@@ -2,12 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct NewUserView: View {
+	@Environment(SessionManager.self) private var session
 	@Environment(\.modelContext) private var modelContext
 	// get all users for uniqueness check
 	@Query private var existingUsers: [User]
 	@State private var name = ""
 	@State private var errorMessage: String?
 	@Binding var done: Bool
+	let automaticallyLogIn: Bool
 
 	var body: some View {
 		NavigationStack {
@@ -55,6 +57,7 @@ return
 
 		do {
 			try modelContext.save()
+			if automaticallyLogIn { session.createAccount(for: newUser) }
 			done = true
 		} catch {
 			errorMessage = "Could not create new user: \(error.localizedDescription)"
@@ -76,9 +79,13 @@ extension NewUserView {
 		}
 
 		let nameExists = existingUsers.contains { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }
-
 		guard !nameExists else {
 			errorMessage = "A user with this name already exists."
+			return false
+		}
+
+		guard trimmedName.count > 1 else {
+			errorMessage = "A user name must have more than one character."
 			return false
 		}
 

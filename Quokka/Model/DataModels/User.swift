@@ -12,3 +12,12 @@ var name: String
 		self.posts = posts
 	}
 }
+
+
+extension User {
+	static func predicate(name: String) -> Predicate<User> {
+		return #Predicate<User> { user in
+			user.name == name
+		} // predicate
+	} // func
+} // extension

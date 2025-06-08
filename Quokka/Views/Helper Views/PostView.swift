@@ -2,13 +2,17 @@ import SwiftUI
 
 struct PostView: View {
 	@Environment(Model.self) private var model
-	let post: Post
+	@Bindable var post: Post
 @State private var duration = 0
 
 	var body: some View {
 		NavigationStack {
 			VStack {
-				Text("Eventually, author details will go here, followed by the transcript/notes.")
+				UserPicker(selectedUser: $post.author, title: "Author", pickerStyle: .menu)
+				DatePicker("Date",
+						   selection: $post.date,
+						   displayedComponents: [.date, .hourAndMinute])
+				.datePickerStyle(.compact)
 
 				Spacer()
 

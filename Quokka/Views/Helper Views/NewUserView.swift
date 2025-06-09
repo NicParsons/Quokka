@@ -9,6 +9,7 @@ struct NewUserView: View {
 	@State private var name = ""
 	@State private var errorMessage: String?
 	@Binding var done: Bool
+	@FocusState private var focusedField: Bool
 	let automaticallyLogIn: Bool
 
 	var body: some View {
@@ -16,8 +17,14 @@ struct NewUserView: View {
 			Form {
 				Section(header: Text("User Name")) {
 					TextField("Name", text: $name)
+						.focused($focusedField)
 					#if os(iOS)
 						.autocapitalization(.words)
+						.textContentType(.name) // or .username
+	  .submitLabel(.done)
+	  .onSubmit {
+		  focusedField = false // dismiss keyboard
+	  } // on submit
 					#endif
 				} // section
 
@@ -29,13 +36,14 @@ struct NewUserView: View {
 				} // end if
 			} // form
 			.padding()
+			.frame(maxWidth: 450)
 			.navigationTitle("Create New User")
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button("Done") {
 						saveUser()
 					} // button
-					.disabled(!nameIsValid)
+					.disabled(!nameIsValid())
 				} // toolbar item
 
 				ToolbarItem(placement: .cancellationAction) {
@@ -48,7 +56,7 @@ done = true
 	} // body
 
 	private func saveUser() {
-		guard nameIsValid else {
+		guard nameIsValid(withErrorReporting: true) else {
 return
 		}
 
@@ -67,28 +75,26 @@ return
 	private func validatedName() -> String {
 		return name.trimmingCharacters(in: .whitespacesAndNewlines)
 	} // func
-} // view
 
-extension NewUserView {
-	var nameIsValid: Bool {
+	func nameIsValid(withErrorReporting errorReportingEnabled: Bool = false) -> Bool {
 		let trimmedName = validatedName()
 
 		guard !trimmedName.isEmpty else {
-			errorMessage = "A user name cannot be blank."
+			if errorReportingEnabled { errorMessage = "A user name cannot be blank." }
 			return false
 		}
 
 		let nameExists = existingUsers.contains { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }
 		guard !nameExists else {
-			errorMessage = "A user with this name already exists."
+			if errorReportingEnabled { errorMessage = "A user with this name already exists." }
 			return false
 		}
 
 		guard trimmedName.count > 1 else {
-			errorMessage = "A user name must have more than one character."
+			if errorReportingEnabled { errorMessage = "A user name must have more than one character." }
 			return false
 		}
 
 		return true
-	} // var
-} // extension
+	} // func
+} // view

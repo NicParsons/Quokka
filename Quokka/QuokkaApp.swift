@@ -7,7 +7,9 @@ struct QuokkaApp: App {
 	@State private var session = SessionManager()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
+			User.self,
 			Post.self,
+			Recording.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

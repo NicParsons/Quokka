@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class User: Identifiable {
 var name: String
-	@Relationship
+	@Relationship(deleteRule: .cascade)
 	var posts: [Post]
 
 	init(name: String, posts: [Post] = [Post]()) {
@@ -12,7 +12,6 @@ var name: String
 		self.posts = posts
 	}
 }
-
 
 extension User {
 	static func predicate(name: String) -> Predicate<User> {

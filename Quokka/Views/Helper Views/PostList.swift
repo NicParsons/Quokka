@@ -3,6 +3,7 @@ import SwiftData
 
 struct PostList: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@Query private var posts: [Post]
 	let date: Date
 	@Binding var selectedPost: Post?
@@ -12,13 +13,12 @@ struct PostList: View {
 		List(posts, id: \.self, selection: $selectedPost) { post in
 PostCapsuleView(post: post)
 			} // List
-		// .focusedSceneValue(\.recording, selected?.recording)
 		.frame(minWidth: 200, maxWidth: 400)
 		// on macOS, we want the accessibility actions to be available without needing to first interact with the list to select the individual recording row
 		// so adding the accessibility VO actions to the list view in addition to the PostCapsuleView
 		// but if we do this on iOS as well it will result in getting the accessibility actions twice
 		#if os(macOS)
-		.addDiaryEntryVOActions(model: model, selectedPost: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
+		.addDiaryEntryVOActions(model: model, context: context, selectedPost: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
 		#endif
 
 		.enableDeletingWithKeyboard(of: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
@@ -33,11 +33,11 @@ PostCapsuleView(post: post)
 
 	// if we later allow multiple selections
 	func delete(at offsets: IndexSet) {
-			var files = [URL]()
+			var postsToDelete = [Post]()
 			for index in offsets {
-				files.append(posts[index].recording.fileURL)
+				postsToDelete.append(posts[index])
 			}
-			model.delete(files)
+			model.delete(postsToDelete, fromContext: context)
 		}
 
 	init(

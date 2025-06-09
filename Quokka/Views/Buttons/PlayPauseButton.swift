@@ -2,17 +2,18 @@ import SwiftUI
 
 struct PlayPauseButton: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	let recording: Recording?
 
     var body: some View {
 		Button(action: {
 			if let recording = recording {
 				if model.isPlaying(recording.fileURL) {
-					model.pause()
+					model.pause(context)
 				} else if model.currentlyPlayingURL == recording.fileURL {
 					model.resumePlayback()
 				} else {
-				model.startPlaying(recording)
+				model.startPlaying(recording, context: context)
 				} // end if
 			} // if let
 		}) {

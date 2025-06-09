@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PostView: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@Bindable var post: Post
 @State private var duration = 0
 
@@ -27,10 +28,10 @@ struct PostView: View {
 					.onEnded { value in
 						if value.translation.height < -50 {
 							print("Swiped up.")
-							model.startPlaying(post.recording)
+							model.startPlaying(post.recording, context: context)
 						} else if value.translation.height > 50 {
 							print("Swiped down.")
-							model.pause()
+							model.pause(context)
 						} // end if
 					} // ended
 			) // Gesture

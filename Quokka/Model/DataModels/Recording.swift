@@ -1,13 +1,14 @@
-import Foundation
 import AVFoundation
-import SwiftUI
-import SwiftData
 import CoreTransferable
+import Foundation
+import SwiftData
+import SwiftUI
 import UniformTypeIdentifiers
 
 @Model
 final class Recording {
 		var fileURL: URL
+	@Relationship(inverse: \Post.recording) var post: Post?
 
 		var creationDate: Date {
 				if let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path) as [FileAttributeKey: Any],
@@ -135,14 +136,15 @@ final class Recording {
 			FileRepresentation(contentType: .mpeg4Audio) { recording in
 				SentTransferredFile(recording.fileURL)
 			} importing: { received in
-				let newRecording = try Model().importRecording(received.file.absoluteURL)
-				return newRecording
+				let _ = try Model().importRecording(received.file.absoluteURL)
+				return Self.init(fileURL: received.file.absoluteURL)
 			}
 		}
 	} // extension
 
 	extension UTType {
-		static var diaryEntry: UTType = UTType(exportedAs: "app.openbooks.AudioDiary.diaryEntry")
+		static var quokkaRecording: UTType = UTType(exportedAs: "app.openbooks.quokka.recording")
+		static var quokkaPost: UTType = UTType(exportedAs: "app.openbooks.quokka.post")
 	}
 
 extension Array where Element: Recording {
@@ -155,5 +157,12 @@ extension Array where Element: Recording {
 	}
 } // Array extension
 
+extension Recording {
+	static func predicate(_ url: URL) -> Predicate<Recording> {
+		return #Predicate<Recording> { recording in
+			recording.fileURL == url
+		}
+	} // func
+} // extension
 
 extension Recording: Identifiable {}

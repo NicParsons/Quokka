@@ -3,6 +3,7 @@ import SwiftUI
 struct PlaybackControlsMenu: Commands {
 	@State private var model = Model()
 	@FocusedValue(\.post) private var selectedPost: Post??
+	var session: SessionManager
 
     var body: some Commands {
 		CommandMenu("Controls") {
@@ -14,12 +15,14 @@ struct PlaybackControlsMenu: Commands {
 				PlayPauseButton(recording: nil)
 					.keyboardShortcut(.return, modifiers: [])
 			}
-			RecordOnlyButton()
-				.environment(model)
-				.keyboardShortcut("r", modifiers: [.command])
-			StopRecordingButton()
-				.environment(model)
-				.keyboardShortcut(".", modifiers: [.command])
+			if let user = session.user {
+				RecordOnlyButton()
+					.environment(model)
+					.keyboardShortcut("r", modifiers: [.command])
+				StopRecordingButton(author: user)
+					.environment(model)
+					.keyboardShortcut(".", modifiers: [.command])
+			} // if let
 		} // CommandMenu
     } // body
 } // Commandds

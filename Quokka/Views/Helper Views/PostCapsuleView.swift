@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PostCapsuleView: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	let post: Post
 	@State private var confirmationDialogIsShown = false
 	@State private var duration: Int = 0
@@ -38,7 +39,7 @@ struct PostCapsuleView: View {
 		// but on iOS the elements are separate by default which makes navigating more verbose and will make it difficult to know which play/delete button relates to which entry
 #if os(iOS)
 .accessibilityElement(children: .combine)
-.addDiaryEntryVOActions(model: model, selectedPost: post, confirmationDialogIsShown: $confirmationDialogIsShown)
+.addDiaryEntryVOActions(model: model, context: context, selectedPost: post, confirmationDialogIsShown: $confirmationDialogIsShown)
 		// combining the children means that the default action on the element triggers all child buttons
 		// unless we override it like this
 .accessibilityAction { playPause() }
@@ -55,7 +56,7 @@ struct PostCapsuleView: View {
 	}
 
 	func playPause() {
-		nowPlaying() ? model.pause() : model.startPlaying(post.recording)
+		nowPlaying() ? model.pause(context) : model.startPlaying(post.recording, context: context)
 	}
 } // View
 

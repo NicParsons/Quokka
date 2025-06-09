@@ -23,6 +23,21 @@
 				</array>
 			</dict>
 		</dict>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>Quokka Recording</string>
+			<key>UTTypeIcons</key>
+			<dict/>
+			<key>UTTypeIdentifier</key>
+			<string>app.openbooks.quokka.recording</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>.quokkarecording</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>

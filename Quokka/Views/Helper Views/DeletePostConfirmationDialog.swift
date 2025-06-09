@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DeleteConfirmationDialog: ViewModifier {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@Binding var selectedPost: Post?
 	@Binding var confirmationDialogIsShown: Bool
 
@@ -12,7 +13,7 @@ content
 								titleVisibility: .visible,
 								presenting: selectedPost) { post in
 				Button(role: .destructive) {
-					model.delete(post.recording)
+					model.delete(post, fromContext: context)
 					selectedPost = nil
 			} label: {
 				Text("Delete")

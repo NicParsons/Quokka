@@ -3,6 +3,7 @@ import SwiftData
 
 struct CalendarList: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@Query private var posts: [Post]
 	@Binding var selectedPost: Post?
 	@State private var confirmationDialogIsShown = false
@@ -19,7 +20,7 @@ struct CalendarList: View {
 				// so adding the accessibility VO actions to the list view in addition to the RecordingRow view
 				// but if we do this on iOS as well it will result in getting the accessibility actions twice
 #if os(macOS)
-				.addDiaryEntryVOActions(model: model, selectedPost: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
+				.addDiaryEntryVOActions(model: model, context: context, selectedPost: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
 #endif
 				.enableDeletingWithKeyboard(of: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
 				.confirmDeletion(ofSelected: $selectedPost, if: $confirmationDialogIsShown)

@@ -1,8 +1,9 @@
-import Foundation
-import Combine
-import AVFoundation
-import SwiftUI
 import AudioToolbox
+import AVFoundation
+import Combine
+import Foundation
+import SwiftData
+import SwiftUI
 
 @Observable
 class Model: NSObject, AVAudioPlayerDelegate {
@@ -10,7 +11,6 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	var audioPlayer: AVAudioPlayer!
 	var isRecording = false
 	var isPlaying = false
-	var recordings: [Recording] = []
 	//TODO: Need to check and update this programatically.
 	var usesICloud = true
 	var iCloudEnabled = false
@@ -25,7 +25,7 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	} // variable
 
 	func isPlaying(_ url: URL) -> Bool {
-		return isPlaying && audioPlayer.url == url
+		return isPlaying && url == currentlyPlayingURL
 	}
 
 	func postsSortedByDay(_ posts: [Post]) -> [CalendarDay] {
@@ -82,7 +82,7 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		}
 	} // func
 
-	func stopRecording() {
+	func stopRecording(forAuthor author: User, context: ModelContext) {
 		// should be safe to force unwrap audioRecorder as stopRecording can only be called if a recording has started
 		let newFileURL = audioRecorder!.url
 		audioRecorder!.stop()
@@ -90,11 +90,11 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		// alternative for macOS: playSystemSound(named: "Bottle", ofType: .aiff)
 		isRecording = false
 		print("Recording stopped.")
-let _ = save(newFileURL)
+let _ = save(newFileURL, forAuthor: author, inContext: context)
 	} // func
 
-	func startPlaying(_ recording: Recording) {
-		if isPlaying { stopPlaying() }
+	func startPlaying(_ recording: Recording, context: ModelContext) {
+		if isPlaying { stopPlaying(context) }
 
 		print("About to play \(recording.shortDescription).")
 
@@ -116,9 +116,9 @@ print("Set playback position to \(audioPlayer.currentTime). The track's playback
 				}
 	} // func
 
-	func pause() {
+	func pause(_ context: ModelContext) {
 		print("Pausing playback.")
-		savePlaybackPosition()
+		savePlaybackPosition(context)
 		if isPlaying { audioPlayer.pause() }
 		DispatchQueue.main.async {
 			self.isPlaying = false
@@ -136,9 +136,9 @@ print("About to resume playback.")
 			print("Resumed playback.")
 	} // func
 
-	func stopPlaying() {
+	func stopPlaying(_ context: ModelContext) {
 		print("Stopping playback.")
-		savePlaybackPosition()
+		savePlaybackPosition(context)
 		// UI logic should mean that the stop button can only be pressed if isPlaying
 		// but let's make doubly sure
 		// because if nothing has yet been played the audioPlayer will be nil
@@ -149,41 +149,47 @@ print("About to resume playback.")
 		print("Playback stopped.")
 	} // func
 
-	func seekForward(_ seconds: TimeInterval = 10) {
+	func seekForward(_ seconds: TimeInterval = 10, context: ModelContext) {
 		guard let player = audioPlayer else { return }
 		let newTime = min(player.currentTime + seconds, player.duration)
 		player.currentTime = newTime
-		savePlaybackPosition()
+		savePlaybackPosition(context)
 	}
 
-	func seekBackward(_ seconds: TimeInterval = 10) {
+	func seekBackward(_ seconds: TimeInterval = 10, context: ModelContext) {
 		guard let player = audioPlayer else { return }
 		let newTime = max(player.currentTime - seconds, 0)
 		player.currentTime = newTime
-		savePlaybackPosition()
+		savePlaybackPosition(context)
 	}
 
-	func setPlaybackPosition(to time: TimeInterval) {
+	func setPlaybackPosition(to time: TimeInterval, context: ModelContext) {
 		guard let player = audioPlayer else { return }
 		player.currentTime = time
-		savePlaybackPosition()
+		savePlaybackPosition(context)
 	}
 
-	func savePlaybackPosition() {
+	func savePlaybackPosition(_ context: ModelContext) {
 		//TODO: If using SwiftData will need to pass the Recording object to this func to update its playback position.
 		print("Saving playback position.")
 		guard let player = audioPlayer, let url = currentlyPlayingURL else {
 			return
 		}
-		if let index = recordings.firstIndex(where: { $0.fileURL == url }) {
-		recordings[index].updatePlaybackPosition(to: player.currentTime)
-		//TODO: ModelContext.save() after updating playback position.
-		}
-	}
+
+		if let recording = recording(withURL: url, fromContext: context) {
+recording.updatePlaybackPosition(to: player.currentTime)
+			do {
+				try context.save()
+				print("Updated playback position.")
+			} catch {
+				print("Failed to save context after updating playback position: \(error)")
+			} // do try ccatch
+		} // end if
+	} // func
 
 	func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
 			if flag {
-				savePlaybackPosition()
+				//TODO: need workaround to call savePlaybackPosition(ModelContext) without ModelContext
 				DispatchQueue.main.async {
 					self.isPlaying = false
 				} // main queue
@@ -192,7 +198,7 @@ print("About to resume playback.")
 
 	func audioPlayerBeginInterruption(_ player: AVAudioPlayer) {
 		// depricated since iOS 8
-		savePlaybackPosition()
+		//TODO: figure out how to call savePlaybackPosition() without access to the ModelContext.
 		DispatchQueue.main.async {
 			self.isPlaying = false
 		} // end if
@@ -298,7 +304,7 @@ return nil
 	} // func
 
 	func newFileURL() -> URL {
-		let fileName = "Diary Entry"
+		let fileName = "Quokka post"
 		let fileExtension = ".m4a"
 		let iso8601Date = Date().ISO8601Format(.init(dateSeparator: .dash, dateTimeSeparator: .space, timeSeparator: .omitted, timeZoneSeparator: .omitted, includingFractionalSeconds: false, timeZone: .autoupdatingCurrent))
 		let index = iso8601Date.firstIndex(of: "+") ?? iso8601Date.endIndex
@@ -329,7 +335,7 @@ print("fileManager.url(forUbiquityContainerIdentifier:) returned nil.")
 	} // func
 
 	func recordingsDirectory() -> URL {
-		let subDirectory = documentsDirectory.appendingPathComponent("Diary Entries", isDirectory: true)
+		let subDirectory = documentsDirectory.appendingPathComponent("Audio", isDirectory: true)
 		var isDirectory: ObjCBool = true
 		let fileManager = FileManager.default
 		if !fileManager.fileExists(atPath: subDirectory.path, isDirectory: &isDirectory) {
@@ -344,33 +350,44 @@ print(error)
 		return subDirectory
 	} // func
 
-	func delete(_ recording: Recording) {
-		let url = recording.fileURL
-		delete(url)
-//TODO: Save Model Context.
-	}
-
-	func delete(_ urlsToDelete: [URL]) {
-			for url in urlsToDelete {
-				delete(url)
+	func delete(_ posts: [Post], fromContext context: ModelContext) {
+		for post in posts {
+delete(post, fromContext: context)
 			} // loop
-//TODO: Save Model Context.
 	} // func
 
-	func delete(_ url: URL) {
-		print("Deleting \(url).")
-		do {
-		   try FileManager.default.trashItem(at: url, resultingItemURL: nil)
-			print("File deleted.")
-			if isPlaying && audioPlayer.url == url { self.stopPlaying() }
-		} catch {
-			print("Could not delete \(url). The error was: \(error.localizedDescription)")
-		} // do try catch
-		recordings.removeAll(where: { $0.fileURL == url } )
-		print("Recording removed from recordings array.")
-	}
+	// Delete post and associated recording
+	func delete(_ post: Post, fromContext context: ModelContext, deleteRecordingFile: Bool = true) {
+		// this method needs to do 4 things
+		// delete the given post from the ModelContext (delete rule will ensure associated Recording object is also deleted)
+		// add logging for audit, trouble shooting and debug purposes
+		// stop playback if the post's recording was playing
+		// and optionally delete the recording from disk
 
-	func importRecording(_ url: URL) throws -> Recording {
+		print("About to delete \(post.description).")
+		if isPlaying(post.recording.fileURL) { self.stopPlaying(context) }
+
+		if deleteRecordingFile { deleteRecording(post.recording.fileURL) }
+		context.delete(post)
+		do {
+			try context.save()
+			print("Deleted post.")
+		} catch {
+			print("Failed to save context after deletion: \(error)")
+		} // do try ccatch
+	} // func
+
+		func deleteRecording(_ url: URL) {
+			print("About to delete the recording at \(url.path()).")
+		do {
+			try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+			print("File deleted.")
+		} catch {
+			print("Could not delete recording at \(url): \(error)")
+		} // do try catch
+		} // func
+
+	func importRecording(_ url: URL, forAuthor author: User? = nil, toContext context: ModelContext? = nil) throws -> Post? {
 		let fileName = url.lastPathComponent
 		let destinationURL = recordingsDirectory().appendingPathComponent(fileName, isDirectory: false)
 		let fileManager = FileManager.default
@@ -379,12 +396,14 @@ print(error)
 			try fileManager.copyItem(at: url, to: destinationURL)
 			if didAccess { url.stopAccessingSecurityScopedResource() }
 		} catch {
-			print("Unable to copy the imported item (\(url) to \(destinationURL).")
-			print(error)
+			print("Unable to copy the imported item (\(url) to \(destinationURL): \(error.localizedDescription).")
 			throw error
 		}
-		let newRecording = save(destinationURL)
-		return newRecording
+		if let context = context {
+			return save(url, forAuthor: author, inContext: context)
+		} else {
+			return nil
+		}
 	} // func
 
 	func export(_ url: URL, to destination: URL) throws {
@@ -413,58 +432,91 @@ print(error)
 return getICloudToken() != nil
 	}
 
-	func save(_ url: URL) -> Recording {
-print("Saving \(url).")
-let newDiaryEntry = Recording(fileURL: url)
-//TODO: Save Model Context.
-		print("New diary entry recording saved.")
-		return newDiaryEntry
+	// Save new recording and post
+	func save(_ url: URL, forAuthor author: User? = nil, forDate date: Date = Date.now, inContext context: ModelContext) -> Post {
+		print("Saving \(url).")
+		let recording = Recording(fileURL: url)
+		let post = Post(date: date, author: author, recording: recording)
+		context.insert(post)
+		do {
+			try context.save()
+			print("New post and recording saved.")
+		} catch {
+			print("Failed to save post: \(error)")
+		}
+
+		return post
 	}
 
-	func fetchAllRecordings() {
-		removeMissingRecordings()
-		print("Fetching recordings.")
+	// Fetch all posts
+	func fetchAllPosts(fromContext context: ModelContext) throws -> [Post] {
+print("Fetching all posts.")
+		let descriptor = FetchDescriptor<Post>(sortBy: [SortDescriptor(\.date, order: .reverse)])
+		return try context.fetch(descriptor)
+	}
+
+	func recording(withURL url: URL, fromContext context: ModelContext) -> Recording? {
+print("Fetching the recording with url \(url).")
+			let predicate = Recording.predicate(url)
+		var descriptor = FetchDescriptor(predicate: predicate)
+			descriptor.fetchLimit = 1
+		do {
+			return try context.fetch(descriptor).first
+		} catch {
+			print("Unable to fetch the specified recording: \(error.localizedDescription)")
+			return nil
+		} // do try catch
+	} // func
+
+	func checkForNewlyAddedRecordings(context: ModelContext, defaultUser author: User) {
+print("Checking for recordings newly added to the recordings directory.")
+var posts = [Post]()
+
+		do {
+			posts = try fetchAllPosts(fromContext: context)
+		} catch {
+print("Unable to fetch existing posts to compare with.")
+			return
+		}
+
 		let fileManager = FileManager.default
 		let directory = recordingsDirectory()
-		var needToSave = false
 
 		do {
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
-				if !recordings.contains(where: { $0.fileURL == url }) {
-				print("Fetching \(url)")
-	let recording = Recording(fileURL: url)
-				recordings.append(recording)
-				recordings.sort(by: { $0.creationDate.compare($1.creationDate) == .orderedAscending})
-					needToSave = true
+				if !posts.contains(where: { $0.recording.fileURL == url }) {
+let _ = save(url, forAuthor: author, inContext: context)
 				} // end if
 			} // end loop
 		} catch {
-			print("Unable to fetch recordings because unable to get the contents of the documents directory in the app's container.")
+			print("Unable to check for newly added recordings because unable to get the contents of the documents directory in the app's container.")
 		} // end do try catch
-		//TODO: Save Model Context.
-		if needToSave { print("Need to save model context.") }
 	} // func
 
-	func removeMissingRecordings() {
-print("Removing missing recordings.")
-		let fileManager = FileManager.default
-		for recording in recordings {
-			let fileExists = fileManager.fileExists(atPath: recording.fileURL.path)
-			if !fileExists {
-				print("The recording at the following path no longer appeares to exist: \(recording.fileURL.path).")
-				recordings.removeAll(where: { $0.fileURL == recording.fileURL})
-				print("Recording removed.")
+	// Remove posts whose associated recording files are missing
+	func removeMissingRecordings(inContext context: ModelContext) async {
+		print("Removing Posts whose recordings are missing on disk.")
+		do {
+			let posts = try fetchAllPosts(fromContext: context)
+			for post in posts {
+				if !FileManager.default.fileExists(atPath: post.recording.fileURL.path) {
+					print("The recording at the following path no longer appeares to exist: \(post.recording.fileURL.path).")
+					//TODO: Update to call delete method.
+					context.delete(post)
+				}
 			}
-		}
-	}
+			try context.save()
+		} catch {
+			print("Failed to remove posts whose recordings were missing: \(error)")
+		} // do try catch
+	} // func
 
 	override init() {
 		super.init()
 iCloudEnabled = isUserLoggedIntoIcloud()
 		print("The user is \(iCloudEnabled ? "" : "not") signed into icloud.")
 		setDocumentsDirectory()
-		fetchAllRecordings()
 		#if os(iOS)
 		configureAudioSession()
 		configureRecordingSession()

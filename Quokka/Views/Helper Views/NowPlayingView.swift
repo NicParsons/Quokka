@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NowPlayingView: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	var recording: Recording
 	@State private var duration: TimeInterval = 0
 	@State private var currentTime: TimeInterval = 0
@@ -27,7 +28,7 @@ struct NowPlayingView: View {
 					Text(duration.formattedAsDuration())
 				} onEditingChanged: { editing in
 					if !editing {
-						model.setPlaybackPosition(to: currentTime)
+						model.setPlaybackPosition(to: currentTime, context: context)
 						isSeeking = false
 					} // end if
 				} // on editing Slider
@@ -47,7 +48,7 @@ struct NowPlayingView: View {
 			// Playback controls
 			HStack {
 				Button(action: {
-					model.seekBackward(15)
+					model.seekBackward(15, context: context)
 				}) {
 					Label("Go backward 15 seconds", systemImage: "gobackward.15")
 				} // button
@@ -56,7 +57,7 @@ struct NowPlayingView: View {
 				PlayPauseButton(recording: recording)
 
 				Button(action: {
-					model.seekForward(15)
+					model.seekForward(15, context: context)
 				}) {
 					Label("Go forward 15 seconds", systemImage: "goforward.15")
 				} // button

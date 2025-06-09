@@ -41,7 +41,7 @@ if model.isPlaying {
         .modelContainer(sharedModelContainer)
 		.commands {
 			FileMenu()
-			PlaybackControlsMenu()
+			PlaybackControlsMenu(session: session)
 		} // commands
     } // body
 } // app

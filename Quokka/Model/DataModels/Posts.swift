@@ -6,11 +6,16 @@ final class Post {
 	var date = Date.now
 	var creationDate = Date.now
 	@Relationship(inverse: \User.posts)
-	var author: User
+	var author: User?
+	@Relationship(deleteRule: .cascade)
 	var recording: Recording
-var listens = 0
+	var listens = 0
 
-	init(date: Date = Date.now, creationDate: Date = Date.now, author: User, recording: Recording, listens: Int = 0) {
+	var authorNameString: String {
+		author?.name ?? "unknown"
+}
+
+	init(date: Date = Date.now, creationDate: Date = Date.now, author: User? = nil, recording: Recording, listens: Int = 0) {
 		self.date = date
 		self.creationDate = creationDate
 		self.author = author
@@ -27,11 +32,11 @@ extension Array where Element: Post {
 
 extension Post {
 	var description: String {
-		return "diary entry from \(author.name) for \(date.formatted(date: .abbreviated, time: .omitted)) at \(date.formatted(date: .omitted, time: .shortened))"
+		return "diary entry from \(authorNameString) for \(date.formatted(date: .abbreviated, time: .omitted)) at \(date.formatted(date: .omitted, time: .shortened))"
 	}
 
 	var shortDescription: String {
-		return "post by \(author.name) at \(timeStamp)"
+		return "post by \(authorNameString) at \(timeStamp)"
 	}
 
 	var timeStamp: String {
@@ -48,7 +53,8 @@ extension Post {
 
 		if let authorID {
 			return #Predicate<Post> { post in
-				post.author.id == authorID &&
+				post.author != nil &&
+				post.author!.id == authorID &&
 				post.date >= start &&
 				post.date <= end
 			} // predicate

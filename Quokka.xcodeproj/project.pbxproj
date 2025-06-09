@@ -16,6 +16,9 @@
 			membershipExceptions = (
 				Info.plist,
 			);
+			platformFiltersByRelativePath = {
+				Views/Buttons/ExportButton.swift = (macos, xros, );
+			};
 			target = 041D88592DD764970013D961 /* Quokka */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */

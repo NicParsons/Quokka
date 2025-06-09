@@ -45,7 +45,7 @@ struct PostView: View {
 		.onAppear {
 			// not needed on macOS due to better keyboard navigation
 			#if os(iOS)
-			model.startPlaying(post.recording)
+			model.startPlaying(post.recording, context: context)
 			#endif
 			Task {
 				await duration = post.recording.duration()
@@ -53,7 +53,7 @@ struct PostView: View {
 		} // on appear
 		#if os(iOS)
 		.onDisappear {
-			if model.isPlaying(post.recording.fileURL) { model.pause() }
+			if model.isPlaying(post.recording.fileURL) { model.pause(context) }
 		} // on disappear
 		#endif
 	} // body

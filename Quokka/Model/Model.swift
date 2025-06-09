@@ -82,7 +82,7 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		}
 	} // func
 
-	func stopRecording(forAuthor author: User, context: ModelContext) {
+	func stopRecording(forAuthor author: User? = nil, context: ModelContext) {
 		// should be safe to force unwrap audioRecorder as stopRecording can only be called if a recording has started
 		let newFileURL = audioRecorder!.url
 		audioRecorder!.stop()

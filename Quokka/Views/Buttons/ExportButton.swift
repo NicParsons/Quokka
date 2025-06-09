@@ -31,7 +31,7 @@ struct ExportButton: View {
 					do {
 					try model.export(url, to: pickedFolder)
 					} catch {
-	// should display alert eventually
+	//TODO: Should display alert with the error encountered when exporting.
 						print(error)
 					} // do try catch
 				}

@@ -26,9 +26,9 @@ struct QuokkaApp: App {
 #if os(iOS)
 .accessibilityAction(.magicTap) {
 if model.isPlaying {
-	model.pause()
+	model.pause(sharedModelContainer.mainContext)
 } else if model.isRecording {
-	model.stopRecording()
+	model.stopRecording(forAuthor: session.user, context: sharedModelContainer.mainContext)
 } else {
 	/* we can do this once we add property to model to detect whether playback is paused
 	model.resumePlayback()

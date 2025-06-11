@@ -17,7 +17,7 @@ struct PostView: View {
 
 				Spacer()
 
-				NowPlayingView(recording: post.recording)
+				if let recording = post.recording { NowPlayingView(recording: recording) }
 			} // VStack
 			.padding()
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -28,7 +28,7 @@ struct PostView: View {
 					.onEnded { value in
 						if value.translation.height < -50 {
 							print("Swiped up.")
-							model.startPlaying(post.recording, context: context)
+							if let recording = post.recording { model.startPlaying(recording, context: context) }
 						} else if value.translation.height > 50 {
 							print("Swiped down.")
 							model.pause(context)
@@ -38,18 +38,22 @@ struct PostView: View {
 		} // Nav Stack
 		.navigationTitle(post.description.capitalizingFirstLetter())
 		.toolbar {
-			ToolbarItem(placement: .primaryAction) {
-				ShareButton(recording: post.recording)
-			} // toolbar item
+			if let recording = post.recording {
+				ToolbarItem(placement: .primaryAction) {
+					ShareButton(recording: recording)
+				} // toolbar item
+			} // if let
 		} // toolbar
 		.onAppear {
 			// not needed on macOS due to better keyboard navigation
 			#if os(iOS)
-			model.startPlaying(post.recording, context: context)
+			if let recording = post.recording { model.startPlaying(recording, context: context) }
 			#endif
-			Task {
-				await duration = post.recording.duration()
-			} // Task
+			if let recording = post.recording {
+				Task {
+					await duration = recording.duration()
+				} // Task
+			} // if let
 		} // on appear
 		#if os(iOS)
 		.onDisappear {

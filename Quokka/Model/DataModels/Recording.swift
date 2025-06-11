@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 @Model
 final class Recording {
 		var fileURL: URL
-	@Relationship(inverse: \Post.recording) var post: Post?
+	// @Relationship(inverse: \Post.recording) var post: Post?
 
 		var creationDate: Date {
 				if let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path) as [FileAttributeKey: Any],

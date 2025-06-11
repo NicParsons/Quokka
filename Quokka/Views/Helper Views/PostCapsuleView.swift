@@ -16,12 +16,18 @@ struct PostCapsuleView: View {
 			.accessibilityElement(children: .combine)
 			.accessibilityLabel(Text("\(post.shortDescription.capitalizingFirstLetter()) (\(duration == 0 ? "-" : duration.formattedAsDuration())) \(nowPlaying() ? ", now playing" : "")"))
 			#if os(macOS)
-			Spacer()
-			PlayPauseButton(recording: post.recording)
-			DownloadButton(recording: post.recording)
+			if let recording = post.recording {
+				Spacer()
+				PlayPauseButton(recording: recording)
+				DownloadButton(recording: recording)
+			} // if let
 			DeleteButton(shouldDelete: $confirmationDialogIsShown)
 			#else
-			post.recording.statusIndicator
+			if let recording = post.recording {
+				recording.statusIndicator
+			} else {
+Image(systemName: "exclamationmark.bubble")
+			} // if let
 			#endif
 		} // HStack
 		.padding()
@@ -45,18 +51,22 @@ struct PostCapsuleView: View {
 .accessibilityAction { playPause() }
 #endif
 		.onAppear {
-			Task {
-				await duration = post.recording.duration()
-			}
+			if let recording = post.recording {
+				Task {
+					await duration = recording.duration()
+				}
+			} // if let
 		}
 	} // body
 
 	func nowPlaying() -> Bool {
-		return model.isPlaying(post.recording.fileURL)
+		guard let recording = post.recording else { return false }
+		return model.isPlaying(recording.fileURL)
 	}
 
 	func playPause() {
-		nowPlaying() ? model.pause(context) : model.startPlaying(post.recording, context: context)
+		guard let recording = post.recording else { return }
+		nowPlaying() ? model.pause(context) : model.startPlaying(recording, context: context)
 	}
 } // View
 

@@ -7,8 +7,8 @@ final class Post {
 	var creationDate = Date.now
 	@Relationship(inverse: \User.posts)
 	var author: User?
-	@Relationship(deleteRule: .cascade)
-	var recording: Recording
+	// @Relationship(deleteRule: .cascade)
+	var recording: Recording?
 	var listens = 0
 
 	var authorNameString: String {

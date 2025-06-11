@@ -24,7 +24,8 @@ class Model: NSObject, AVAudioPlayerDelegate {
 		} // end if
 	} // variable
 
-	func isPlaying(_ url: URL) -> Bool {
+	func isPlaying(_ url: URL?) -> Bool {
+		guard let url = url else { return false }
 		return isPlaying && url == currentlyPlayingURL
 	}
 
@@ -365,9 +366,9 @@ delete(post, fromContext: context)
 		// and optionally delete the recording from disk
 
 		print("About to delete \(post.description).")
-		if isPlaying(post.recording.fileURL) { self.stopPlaying(context) }
+		if isPlaying(post.recording?.fileURL) { self.stopPlaying(context) }
 
-		if deleteRecordingFile { deleteRecording(post.recording.fileURL) }
+		if deleteRecordingFile { deleteRecording(post.recording?.fileURL) }
 		context.delete(post)
 		do {
 			try context.save()
@@ -377,7 +378,8 @@ delete(post, fromContext: context)
 		} // do try ccatch
 	} // func
 
-		func deleteRecording(_ url: URL) {
+		func deleteRecording(_ url: URL?) {
+			guard let url = url else { return }
 			print("About to delete the recording at \(url.path()).")
 		do {
 			try FileManager.default.trashItem(at: url, resultingItemURL: nil)
@@ -485,7 +487,7 @@ print("Unable to fetch existing posts to compare with.")
 		do {
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
-				if !posts.contains(where: { $0.recording.fileURL == url }) {
+				if !posts.contains(where: { $0.recording?.fileURL == url }) {
 let _ = save(url, forAuthor: author, inContext: context)
 				} // end if
 			} // end loop
@@ -500,12 +502,17 @@ let _ = save(url, forAuthor: author, inContext: context)
 		do {
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
-				if !FileManager.default.fileExists(atPath: post.recording.fileURL.path) {
-					print("The recording at the following path no longer appeares to exist: \(post.recording.fileURL.path).")
-					//TODO: Update to call delete method.
-					context.delete(post)
-				}
-			}
+				if let recording = post.recording {
+					if !FileManager.default.fileExists(atPath: recording.fileURL.path) {
+						print("The recording at the following path no longer appeares to exist: \(recording.fileURL.path).")
+						delete(post, fromContext: context)
+					} // end if
+				} else {
+					// recording was nil
+					print("The post \(post.description) did not have a recording.")
+					delete(post, fromContext: context)
+				} // end if
+			} // end loop
 			try context.save()
 		} catch {
 			print("Failed to remove posts whose recordings were missing: \(error)")

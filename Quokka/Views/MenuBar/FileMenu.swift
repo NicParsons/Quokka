@@ -14,6 +14,7 @@ struct FileMenu: Commands {
 				.keyboardShortcut("e", modifiers: [.command])
 			} else {
 				ExportButton(recordingURL: nil)
+					.environment(model)
 			} // if let
 			#endif
 		} // command group

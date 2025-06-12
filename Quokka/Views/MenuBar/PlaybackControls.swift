@@ -13,6 +13,7 @@ struct PlaybackControlsMenu: Commands {
 				.keyboardShortcut(.return, modifiers: [])
 			} else {
 				PlayPauseButton(recording: nil)
+					.environment(model)
 					.keyboardShortcut(.return, modifiers: [])
 			}
 			if let user = session.user {

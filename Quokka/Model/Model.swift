@@ -95,12 +95,14 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 	} // func
 
 	func startPlaying(_ recording: Recording, context: ModelContext) {
+		guard let url = recording.fileURL else { return }
+
 		if isPlaying { stopPlaying(context) }
 
 		print("About to play \(recording.shortDescription).")
 
 		do {
-			audioPlayer = try AVAudioPlayer(contentsOf: recording.fileURL)
+			audioPlayer = try AVAudioPlayer(contentsOf: url)
 			audioPlayer.delegate = self
 			#if os(iOS)
 			setupNotifications()
@@ -111,7 +113,7 @@ print("Set playback position to \(audioPlayer.currentTime). The track's playback
 			DispatchQueue.main.async {
 				self.isPlaying = true
 			} // main queue
-			print("Started playing \(recording.fileURL).")
+			print("Started playing \(url).")
 				} catch {
 					print("Playback failed.")
 				}
@@ -502,14 +504,14 @@ let _ = save(url, forAuthor: author, inContext: context)
 		do {
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
-				if let recording = post.recording {
-					if !FileManager.default.fileExists(atPath: recording.fileURL.path) {
-						print("The recording at the following path no longer appeares to exist: \(recording.fileURL.path).")
+				if let recording = post.recording, let url = recording.fileURL {
+					if !FileManager.default.fileExists(atPath: url.path) {
+						print("The recording at the following path no longer appeares to exist: \(url.path).")
 						delete(post, fromContext: context)
 					} // end if
 				} else {
-					// recording was nil
-					print("The post \(post.description) did not have a recording.")
+					// recording was nil or it didn't have a fileURL
+					print("The post \(post.description) did not have a recording or a fileURL.")
 					delete(post, fromContext: context)
 				} // end if
 			} // end loop

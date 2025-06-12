@@ -5,7 +5,7 @@ import SwiftData
 final class User: Identifiable {
 var name: String = ""
 	@Relationship(deleteRule: .cascade)
-	var posts: [Post] = []
+	var posts: [Post]? = []
 
 	init(name: String, posts: [Post] = [Post]()) {
 		self.name = name

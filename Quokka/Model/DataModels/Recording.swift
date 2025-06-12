@@ -7,11 +7,11 @@ import UniformTypeIdentifiers
 
 @Model
 final class Recording {
-		var fileURL: URL
-	// @Relationship(inverse: \Post.recording) var post: Post?
+		var fileURL: URL?
+	@Relationship(inverse: \Post.recording) var post: Post?
 
 		var creationDate: Date {
-				if let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path) as [FileAttributeKey: Any],
+				if let url = fileURL, let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as [FileAttributeKey: Any],
 					let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
 					return creationDate
 				} else {
@@ -31,7 +31,7 @@ final class Recording {
 		}
 
 		var fileName: String {
-			fileURL.lastPathComponent
+			fileURL?.lastPathComponent ?? ""
 		}
 
 		var description: String {
@@ -43,6 +43,7 @@ final class Recording {
 		}
 
 		func duration() async -> Int {
+			guard let fileURL = fileURL else { return 0 }
 			var seconds: Int
 			let audioAsset = AVURLAsset(url: fileURL)
 			do {
@@ -56,6 +57,7 @@ final class Recording {
 		} // func
 
 		func download() throws -> Bool {
+			guard let fileURL = fileURL else { return false }
 			if status != .downloaded && status != .downloading {
 				print("About to download \(fileURL.description).")
 			let fileManager = FileManager.default
@@ -76,6 +78,7 @@ final class Recording {
 		}
 
 		var status: DownloadStatus {
+			guard let fileURL = fileURL else { return .error }
 			do {
 				let result = try fileURL.resourceValues(forKeys: [URLResourceKey.ubiquitousItemDownloadingStatusKey, URLResourceKey.ubiquitousItemIsDownloadingKey, URLResourceKey.ubiquitousItemDownloadRequestedKey])
 				let downloadingStatus = result.ubiquitousItemDownloadingStatus
@@ -125,7 +128,7 @@ final class Recording {
 	case downloaded, downloading, remote, error, unknown
 		}
 
-	init(fileURL: URL, playbackPosition: TimeInterval = 0) {
+	init(fileURL: URL?, playbackPosition: TimeInterval = 0) {
 		self.fileURL = fileURL
 		self.playbackPosition = playbackPosition
 	} // init
@@ -134,7 +137,11 @@ final class Recording {
 	extension Recording: Transferable {
 		static var transferRepresentation: some TransferRepresentation {
 			FileRepresentation(contentType: .mpeg4Audio) { recording in
-				SentTransferredFile(recording.fileURL)
+				if let fileURL = recording.fileURL {
+					return SentTransferredFile(fileURL)
+				} else {
+					return SentTransferredFile(URL(fileURLWithPath: ""))
+				}
 			} importing: { received in
 				let _ = try Model().importRecording(received.file.absoluteURL)
 				return Self.init(fileURL: received.file.absoluteURL)

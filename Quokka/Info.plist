@@ -40,7 +40,7 @@
 			</dict>
 		</dict>
 	</array>
-	<key>PrivacyMicrophoneUsageDescription</key>
+	<key>NSMicrophoneUsageDescription</key>
 	<string>Access to the microphone is needed to record voice messages, audio posts and audio diary entries. The microphone is only accessed when you choose to record.</string>
 </dict>
 </plist>

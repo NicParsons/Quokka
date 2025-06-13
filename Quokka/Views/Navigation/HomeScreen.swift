@@ -16,8 +16,12 @@ struct HomeScreen: View {
 	TodayView(selectedPost: $selectedPost)
 				} // today tab
 
-				Tab("journal", systemImage: "book.circle", value: "journal") {
+				Tab("Journal", systemImage: "book.circle", value: "journal") {
 					CalendarList(selectedPost: $selectedPost)
+				}
+
+				Tab("Test ShareLink", image: "square.and.arrow.up", value: "test") {
+TestShareView()
 				}
 			} // tab view
 

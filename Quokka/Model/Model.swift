@@ -95,14 +95,12 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 	} // func
 
 	func startPlaying(_ recording: Recording, context: ModelContext) {
-		guard let url = recording.fileURL else { return }
-
 		if isPlaying { stopPlaying(context) }
 
 		print("About to play \(recording.shortDescription).")
 
 		do {
-			audioPlayer = try AVAudioPlayer(contentsOf: url)
+			audioPlayer = try AVAudioPlayer(contentsOf: recording.fileURL)
 			audioPlayer.delegate = self
 			#if os(iOS)
 			setupNotifications()
@@ -113,7 +111,7 @@ print("Set playback position to \(audioPlayer.currentTime). The track's playback
 			DispatchQueue.main.async {
 				self.isPlaying = true
 			} // main queue
-			print("Started playing \(url).")
+			print("Started playing \(recording.fileURL).")
 				} catch {
 					print("Playback failed.")
 				}
@@ -179,8 +177,8 @@ print("About to resume playback.")
 			return
 		}
 
-		if let recording = recording(withURL: url, fromContext: context) {
-recording.updatePlaybackPosition(to: player.currentTime)
+		if let post = getPost(withURL: url, fromContext: context) {
+			post.recording.updatePlaybackPosition(to: player.currentTime)
 			do {
 				try context.save()
 				print("Updated playback position.")
@@ -368,9 +366,9 @@ delete(post, fromContext: context)
 		// and optionally delete the recording from disk
 
 		print("About to delete \(post.description).")
-		if isPlaying(post.recording?.fileURL) { self.stopPlaying(context) }
+		if isPlaying(post.recording.fileURL) { self.stopPlaying(context) }
 
-		if deleteRecordingFile { deleteRecording(post.recording?.fileURL) }
+		if deleteRecordingFile { deleteRecording(post.recording.fileURL) }
 		context.delete(post)
 		do {
 			try context.save()
@@ -459,15 +457,15 @@ print("Fetching all posts.")
 		return try context.fetch(descriptor)
 	}
 
-	func recording(withURL url: URL, fromContext context: ModelContext) -> Recording? {
-print("Fetching the recording with url \(url).")
-			let predicate = Recording.predicate(url)
+	func getPost(withURL url: URL, fromContext context: ModelContext) -> Post? {
+print("Fetching the post with recording url \(url).")
+		let predicate = Post.predicate(byURL: url)
 		var descriptor = FetchDescriptor(predicate: predicate)
 			descriptor.fetchLimit = 1
 		do {
 			return try context.fetch(descriptor).first
 		} catch {
-			print("Unable to fetch the specified recording: \(error.localizedDescription)")
+			print("Unable to fetch the specified post: \(error.localizedDescription)")
 			return nil
 		} // do try catch
 	} // func
@@ -489,7 +487,7 @@ print("Unable to fetch existing posts to compare with.")
 		do {
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
-				if !posts.contains(where: { $0.recording?.fileURL == url }) {
+				if !posts.contains(where: { $0.recording.fileURL == url }) {
 let _ = save(url, forAuthor: author, inContext: context)
 				} // end if
 			} // end loop
@@ -504,16 +502,10 @@ let _ = save(url, forAuthor: author, inContext: context)
 		do {
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
-				if let recording = post.recording, let url = recording.fileURL {
-					if !FileManager.default.fileExists(atPath: url.path) {
-						print("The recording at the following path no longer appeares to exist: \(url.path).")
+				if !FileManager.default.fileExists(atPath: post.recording.fileURL.path) {
+					print("The recording at the following path no longer appeares to exist: \(post.recording.fileURL.path).")
 						delete(post, fromContext: context)
 					} // end if
-				} else {
-					// recording was nil or it didn't have a fileURL
-					print("The post \(post.description) did not have a recording or a fileURL.")
-					delete(post, fromContext: context)
-				} // end if
 			} // end loop
 			try context.save()
 		} catch {

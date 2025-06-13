@@ -9,7 +9,6 @@ struct QuokkaApp: App {
         let schema = Schema([
 			User.self,
 			Post.self,
-			Recording.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

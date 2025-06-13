@@ -3,31 +3,24 @@ import SwiftUI
 struct PostCapsuleView: View {
 	@Environment(Model.self) private var model
 	@Environment(\.modelContext) private var context
-	let post: Post
+	@Bindable var post: Post
 	@State private var confirmationDialogIsShown = false
-	@State private var duration: Int = 0
 
 	var body: some View {
 		HStack {
 			HStack {
 				nowPlayingIndicator
-				Text("\(post.shortDescription.capitalizingFirstLetter()) (\(duration == 0 ? "" : duration.formattedAsDuration()))")
+				Text("\(post.shortDescription.capitalizingFirstLetter()) (\(post.recording.duration == 0 ? "" : post.recording.duration.formattedAsDuration()))")
 			}
 			.accessibilityElement(children: .combine)
-			.accessibilityLabel(Text("\(post.shortDescription.capitalizingFirstLetter()) (\(duration == 0 ? "-" : duration.formattedAsDuration())) \(nowPlaying() ? ", now playing" : "")"))
+			.accessibilityLabel(Text("\(post.shortDescription.capitalizingFirstLetter()) (\(post.recording.duration == 0 ? "-" : post.recording.duration.formattedAsDuration())) \(nowPlaying() ? ", now playing" : "")"))
 			#if os(macOS)
-			if let recording = post.recording {
 				Spacer()
-				PlayPauseButton(recording: recording)
-				DownloadButton(recording: recording)
-			} // if let
+			PlayPauseButton(recording: post.recording)
+			DownloadButton(recording: post.recording)
 			DeleteButton(shouldDelete: $confirmationDialogIsShown)
 			#else
-			if let recording = post.recording {
-				recording.statusIndicator
-			} else {
-Image(systemName: "exclamationmark.bubble")
-			} // if let
+				post.recording.statusIndicator
 			#endif
 		} // HStack
 		.padding()
@@ -40,8 +33,7 @@ Image(systemName: "exclamationmark.bubble")
 				.shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 		) // background
 		.padding(.horizontal, 8)
-		// .confirmDeletion(ofSelected: $post, if: $confirmationDialogIsShown)
-		// macOS automatically combines the RecordingRow into one accessibility element which VoiceOver can interact with to access the child elements
+		// macOS automatically combines the PostCapsule into one accessibility element which VoiceOver can interact with to access the child elements
 		// but on iOS the elements are separate by default which makes navigating more verbose and will make it difficult to know which play/delete button relates to which entry
 #if os(iOS)
 .accessibilityElement(children: .combine)
@@ -51,22 +43,18 @@ Image(systemName: "exclamationmark.bubble")
 .accessibilityAction { playPause() }
 #endif
 		.onAppear {
-			if let recording = post.recording {
 				Task {
-					await duration = recording.duration()
+					post.recording.duration = await post.recording.updatedDuration()
 				}
-			} // if let
 		}
 	} // body
 
 	func nowPlaying() -> Bool {
-		guard let recording = post.recording else { return false }
-		return model.isPlaying(recording.fileURL)
+		return model.isPlaying(post.recording.fileURL)
 	}
 
 	func playPause() {
-		guard let recording = post.recording else { return }
-		nowPlaying() ? model.pause(context) : model.startPlaying(recording, context: context)
+		nowPlaying() ? model.pause(context) : model.startPlaying(post.recording, context: context)
 	}
 } // View
 

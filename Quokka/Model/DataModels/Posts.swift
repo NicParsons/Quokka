@@ -1,3 +1,4 @@
+import CoreTransferable
 import Foundation
 import SwiftData
 
@@ -7,8 +8,7 @@ final class Post {
 	var creationDate = Date.now
 	@Relationship(inverse: \User.posts)
 	var author: User?
-	@Relationship(deleteRule: .cascade)
-	var recording: Recording?
+	var recording: Recording
 	var listens = 0
 
 	var authorNameString: String {
@@ -65,6 +65,20 @@ extension Post {
 			}
 		} // end if let
 	} // func
+
+	static func predicate(byURL url: URL) -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.recording.fileURL == url
+		} // predicate
+	} // func
 } // Post extension
 
 extension Post: Identifiable {}
+
+extension Post: Transferable {
+	static var transferRepresentation: some TransferRepresentation {
+		ProxyRepresentation { post in
+			post.recording.fileURL
+		}
+	} // TransferRep
+} // extension

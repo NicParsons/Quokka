@@ -32,7 +32,7 @@ struct NowPlayingView: View {
 						isSeeking = false
 					} // end if
 				} // on editing Slider
-				.accessibilityValue(Text("\(currentTime.formattedAsDuration()) of \(duration.formattedAsDuration())"))
+				.accessibilityValue(Text("\(currentTime.formattedAsDuration()) elapsed of \(duration.formattedAsDuration())"))
 
 				HStack {
 					Text(currentTime.formattedAsDuration())
@@ -68,8 +68,9 @@ struct NowPlayingView: View {
 		.frame(maxWidth: 500)
 		.frame(minHeight: 150, maxHeight: 250)
 		.onAppear {
+			duration = recording.duration
 			Task {
-					self.duration = Double(await recording.duration())
+				self.duration = await recording.updatedDuration()
 					startTimer()
 			} // task
 		} // on appear

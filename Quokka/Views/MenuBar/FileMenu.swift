@@ -2,14 +2,14 @@ import SwiftUI
 
 struct FileMenu: Commands {
 @State private var model = Model()
-	@FocusedValue(\.recording) private var selectedRecording: Recording??
+	@FocusedValue(\.post) private var selectedPost: Post??
 	var body: some Commands {
 		CommandGroup(after: .newItem) {
 			ImportButton()
 				.environment(model)
 			#if os(macOS)
-			if let recording = selectedRecording {
-				ExportButton(recordingURL: recording?.fileURL)
+			if let unwrappedPost = selectedPost, let post = unwrappedPost, let recording = post.recording {
+				ExportButton(recordingURL: recording.fileURL)
 					.environment(model)
 				.keyboardShortcut("e", modifiers: [.command])
 			} else {

@@ -20,9 +20,11 @@ struct HomeScreen: View {
 					CalendarList(selectedPost: $selectedPost)
 				}
 
-				Tab("Test ShareLink", image: "square.and.arrow.up", value: "test") {
+				#if debug
+				Tab("Test ShareLink", systemImage: "square.and.arrow.up", value: "test") {
 TestShareView()
 				}
+				#endif
 			} // tab view
 
 			.focusedSceneValue(\.post, selectedPost)

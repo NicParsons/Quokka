@@ -26,6 +26,7 @@ TestShareView()
 				}
 				#endif
 			} // tab view
+			.tabViewStyle(.sidebarAdaptable)
 
 			.focusedSceneValue(\.post, selectedPost)
 

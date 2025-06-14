@@ -10,12 +10,22 @@ struct NewUserView: View {
 	@State private var errorMessages: [String] = []
 	@Binding var done: Bool
 	@FocusState private var focusedField: Bool
+	@State private var user: User? = nil
 	let automaticallyLogIn: Bool
+	let title: String = "Who are you?"
 
 	var body: some View {
 		NavigationStack {
 			Form {
-				Section(header: Text("User Name")) {
+				// choose from an existing user (if any)
+				if !existingUsers.isEmpty {
+					Section(header: Text("Existing Authors")) {
+						UserPicker(selectedUser: $user, title: "Authors", pickerStyle: .menu)
+					} // section
+				} // end if
+
+				// or create a new one
+				Section(header: Text("Create New Author")) {
 					TextField("Name", text: $name)
 						.focused($focusedField)
 					#if os(iOS)
@@ -41,13 +51,18 @@ struct NewUserView: View {
 			} // form
 			.padding()
 			.frame(idealWidth: 250, maxWidth: 450)
-			.navigationTitle("Create New User")
+			.navigationTitle(title)
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button("Done") {
-						saveUser()
+						if let user = user {
+							session.login(as: user)
+							done = true
+						} else {
+							saveUser()
+						} // if let
 					} // button
-					.disabled(name.isEmpty)
+					.disabled(name.isEmpty && user == nil)
 				} // toolbar item
 
 				ToolbarItem(placement: .cancellationAction) {
@@ -69,10 +84,10 @@ return
 
 		do {
 			try modelContext.save()
-			if automaticallyLogIn { session.createAccount(for: newUser) }
+			if automaticallyLogIn { session.login(as: newUser) }
 			done = true
 		} catch {
-			errorMessages.append("Could not create new user: \(error.localizedDescription)")
+			errorMessages.append("Could not create new author: \(error.localizedDescription)")
 		} // do try catch
 	} // func
 
@@ -85,18 +100,18 @@ return
 		let trimmedName = validatedName()
 
 		guard !trimmedName.isEmpty else {
-			errorMessages.append("A user name cannot be blank.")
+			errorMessages.append("An author name cannot be blank.")
 			return false
 		}
 
 		let nameExists = existingUsers.contains { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }
 		guard !nameExists else {
-			errorMessages.append("A user with this name already exists.")
+			errorMessages.append("An author with this name already exists.")
 			return false
 		}
 
 		guard trimmedName.count > 1 else {
-			errorMessages.append("A user name must have more than one character.")
+			errorMessages.append("An author name must have more than one character.")
 			return false
 		}
 

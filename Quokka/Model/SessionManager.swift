@@ -21,7 +21,7 @@ final class SessionManager {
 
 	var user: User?
 
-	func createAccount(for newUser: User) {
+	func login(as newUser: User) {
 		username = newUser.name
 		user = newUser
 	}

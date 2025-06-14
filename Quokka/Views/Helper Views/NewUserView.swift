@@ -7,7 +7,7 @@ struct NewUserView: View {
 	// get all users for uniqueness check
 	@Query private var existingUsers: [User]
 	@State private var name = ""
-	@State private var errorMessage: String?
+	@State private var errorMessages: [String] = []
 	@Binding var done: Bool
 	@FocusState private var focusedField: Bool
 	let automaticallyLogIn: Bool
@@ -24,26 +24,30 @@ struct NewUserView: View {
 	  .submitLabel(.done)
 	  .onSubmit {
 		  focusedField = false // dismiss keyboard
+		  saveUser()
 	  } // on submit
 					#endif
 				} // section
 
-				if let errorMessage = errorMessage {
+				if !errorMessages.isEmpty {
 					Section {
-						Text(errorMessage)
-							.foregroundColor(.red)
+						ForEach(errorMessages, id: \.self) { errorMessage in
+							Text("• \(errorMessage)")
+								.font(.callout)
+								.foregroundColor(.red)
+						} // ForEach
 					} // section
 				} // end if
 			} // form
 			.padding()
-			.frame(maxWidth: 450)
+			.frame(idealWidth: 250, maxWidth: 450)
 			.navigationTitle("Create New User")
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button("Done") {
 						saveUser()
 					} // button
-					.disabled(!nameIsValid())
+					.disabled(name.isEmpty)
 				} // toolbar item
 
 				ToolbarItem(placement: .cancellationAction) {
@@ -56,7 +60,7 @@ done = true
 	} // body
 
 	private func saveUser() {
-		guard nameIsValid(withErrorReporting: true) else {
+		guard nameIsValid() else {
 return
 		}
 
@@ -68,7 +72,7 @@ return
 			if automaticallyLogIn { session.createAccount(for: newUser) }
 			done = true
 		} catch {
-			errorMessage = "Could not create new user: \(error.localizedDescription)"
+			errorMessages.append("Could not create new user: \(error.localizedDescription)")
 		} // do try catch
 	} // func
 
@@ -76,22 +80,23 @@ return
 		return name.trimmingCharacters(in: .whitespacesAndNewlines)
 	} // func
 
-	func nameIsValid(withErrorReporting errorReportingEnabled: Bool = false) -> Bool {
+	func nameIsValid() -> Bool {
+		errorMessages.removeAll()
 		let trimmedName = validatedName()
 
 		guard !trimmedName.isEmpty else {
-			if errorReportingEnabled { errorMessage = "A user name cannot be blank." }
+			errorMessages.append("A user name cannot be blank.")
 			return false
 		}
 
 		let nameExists = existingUsers.contains { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }
 		guard !nameExists else {
-			if errorReportingEnabled { errorMessage = "A user with this name already exists." }
+			errorMessages.append("A user with this name already exists.")
 			return false
 		}
 
 		guard trimmedName.count > 1 else {
-			if errorReportingEnabled { errorMessage = "A user name must have more than one character." }
+			errorMessages.append("A user name must have more than one character.")
 			return false
 		}
 

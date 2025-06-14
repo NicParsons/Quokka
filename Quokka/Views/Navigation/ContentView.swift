@@ -16,7 +16,7 @@ NewUserView(done: $loggedIn, automaticallyLogIn: true)
 	} // VStack
 		.onAppear {
 			do {
-				try session.login(context: context)
+				try session.login(context)
 				if let _ = session.user { loggedIn = true }
 			} catch {
 				print("Error logging in: \(error.localizedDescription)")

@@ -8,7 +8,7 @@ struct CalendarList: View {
 	@Binding var selectedPost: Post?
 	@State private var confirmationDialogIsShown = false
 
-    var body: some View {
+	var body: some View {
 		NavigationView {
 			ScrollViewReader { proxy in
 				List(selection: $selectedPost) {
@@ -45,13 +45,26 @@ struct CalendarList: View {
 		} // NavigationView
 		.navigationTitle(Text("Your Audio Journal"))
 		.toolbar {
-			#if os(iOS)
+#if os(iOS)
 			ToolbarItem(placement: .navigationBarTrailing) {
-			EditButton()
-		} // ToolbarItem
-		#endif
+				EditButton()
+			} // ToolbarItem
+#endif
 		} // Toolbar
-    } // body
+	} // body
+
+	init(
+		author: User?,
+	selectedPost: Binding<Post?>) {
+		_selectedPost = selectedPost
+		let predicate: Predicate<Post>
+		if let author = author {
+			predicate = Post.predicate(authorID: author.id)
+		} else {
+			predicate = Post.anyAurthor()
+		}
+		_posts = Query(filter: predicate, sort: \.date, order: .forward)
+	} // init
 } // View
 
 extension CalendarList {

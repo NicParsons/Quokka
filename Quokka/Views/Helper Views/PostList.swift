@@ -51,21 +51,4 @@ PostCapsuleView(post: post)
 		_posts = Query(filter: predicate, sort: \.date, order: sortOrder)
 	}
 
-	/* if we ever want a simpler way to initialise this view, we could use the following code
-	init(recordings: [Recording]) {
-		self.recordings = recordings
-		self.date = nil
-	}
-
-	 // but if we use a custom initialiser we have to replace the default initialiser as well
-	init(recordings: [Recording], date: Date) {
-		self.recordings = recordings
-		self.date = date
-	}
-
-	 // and we'd also have to make the date constant an optional,
-	 // conditionally force unwrap it in the Text view, and
-	 // provide an alternative string to use if it is nil
-	 // or derive the date from the date of one of the recordings
-	 */
 } // view

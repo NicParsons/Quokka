@@ -44,6 +44,7 @@ extension Post {
 		date.formatted(date: .omitted, time: .shortened)
 	}
 
+	// get posts within a defined date range optionally by a specified author
 	static func predicate(
 		authorID: User.ID? = nil,
 		date: Date = .now
@@ -66,6 +67,39 @@ extension Post {
 			}
 		} // end if let
 	} // func
+
+	// get all posts by a specified author
+	static func predicate(authorID: User.ID) -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.author != nil &&
+			post.author!.id == authorID
+		}
+	} // func
+
+	// get posts by any and all authors (omitting only posts with no author)
+	static func anyAurthor() -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.author != nil
+		}
+	} // func
+
+	// get posts that have no author
+	static func noAuthor() -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.author == nil
+		}
+	} // func
+
+// get all posts by any one of an array of authors
+	/* this doesn't yet compile - fix it when it's needed
+	static func predicate(authors: [User]) -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.author != nil &&
+			// the following line is the reason it doesn't compile
+			authors.contains(post.author!)
+		}
+	} // func
+	*/
 
 	static func predicate(byURL url: URL) -> Predicate<Post> {
 		#Predicate<Post> { post in

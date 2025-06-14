@@ -16,7 +16,7 @@ struct PostView: View {
 
 				Spacer()
 
-				NowPlayingView(recording: post.recording)
+				if let recording = post.recording { NowPlayingView(recording: recording) }
 			} // VStack
 			.padding()
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -27,7 +27,7 @@ struct PostView: View {
 					.onEnded { value in
 						if value.translation.height < -50 {
 							print("Swiped up.")
-							model.startPlaying(post.recording, context: context)
+							if let recording = post.recording { model.startPlaying(recording, context: context) }
 						} else if value.translation.height > 50 {
 							print("Swiped down.")
 							model.pause(context)
@@ -37,18 +37,25 @@ struct PostView: View {
 		} // Nav Stack
 		.navigationTitle(post.description.capitalizingFirstLetter())
 		.toolbar {
+			// currently implementation of ShareButton only uses Transferrable conformance of Recording or passes the post.recording.fileURL directly
+			// but Post's implementation of Transferrable conformance force unwraps post.recording, so to be safe let's not show ShareButton if there is no recording
+			if let _ = post.recording {
 				ToolbarItem(placement: .primaryAction) {
 					ShareButton(post: post)
 				} // toolbar item
+			} // if let
 		} // toolbar
 		.onAppear {
-			// not needed on macOS due to better keyboard navigation
-			#if os(iOS)
-			model.startPlaying(post.recording, context: context)
-			#endif
+			if let recording = post.recording {
+				// not needed on macOS due to better keyboard navigation
+#if os(iOS)
+				model.startPlaying(recording, context: context)
+#endif
 				Task {
-					await post.recording.duration = post.recording.updatedDuration()
+					// safe to unwrap
+					await post.recording!.duration = recording.updatedDuration()
 				} // Task
+			} // if let
 		} // on appear
 		#if os(iOS)
 		.onDisappear {

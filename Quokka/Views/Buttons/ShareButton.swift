@@ -4,9 +4,10 @@ struct ShareButton: View {
 	@Environment(Model.self) private var model
 	let post: Post
     var body: some View {
-		#if os(macOS)
+		if let recording = post.recording {
+#if os(macOS)
 			ShareLink(
-				item: post.recording.fileURL,
+				item: recording.fileURL,
 				subject: Text(post.description.capitalizingFirstLetter()),
 				message: Text(post.description.capitalizingFirstLetter()),
 				preview: SharePreview(
@@ -14,16 +15,17 @@ struct ShareButton: View {
 					image: Image(systemName: "waveform.circle")
 				) // SharePreivew
 			) // ShareLink
-		#else
-		ShareLink(
-			item: post,
-			subject: Text(post.description.capitalizingFirstLetter()),
-			message: Text(post.description.capitalizingFirstLetter()),
-			preview: SharePreview(
-				post.description.capitalizingFirstLetter(),
-				image: Image(systemName: "waveform.circle")
-			) // SharePreivew
-		) // ShareLink
-		#endif
+#else
+			ShareLink(
+				item: recording,
+				subject: Text(post.description.capitalizingFirstLetter()),
+				message: Text(post.description.capitalizingFirstLetter()),
+				preview: SharePreview(
+					post.description.capitalizingFirstLetter(),
+					image: Image(systemName: "waveform.circle")
+				) // SharePreivew
+			) // ShareLink
+#endif
+		} // if let
     } // body
 } // view

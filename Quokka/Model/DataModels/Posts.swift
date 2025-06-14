@@ -1,6 +1,7 @@
 import CoreTransferable
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
 final class Post {
@@ -8,7 +9,7 @@ final class Post {
 	var creationDate = Date.now
 	@Relationship(inverse: \User.posts)
 	var author: User?
-	var recording: Recording
+	var recording: Recording?
 	var listens = 0
 
 	var authorNameString: String {
@@ -68,7 +69,8 @@ extension Post {
 
 	static func predicate(byURL url: URL) -> Predicate<Post> {
 		#Predicate<Post> { post in
-			post.recording.fileURL == url
+			post.recording != nil &&
+			post.recording!.fileURL == url
 		} // predicate
 	} // func
 } // Post extension
@@ -78,7 +80,19 @@ extension Post: Identifiable {}
 extension Post: Transferable {
 	static var transferRepresentation: some TransferRepresentation {
 		ProxyRepresentation { post in
-			post.recording.fileURL
+			//TODO: Only allow sharing when post.recording exists, so safe to unwrap.
+			post.recording!.fileURL
 		}
 	} // TransferRep
 } // extension
+
+
+extension Post {
+	var recordingStatusIndicator: ModifiedContent<Image, AccessibilityAttachmentModifier> {
+		if let recording = recording {
+			return recording.statusIndicator
+		} else {
+			return Recording.errorIndicator
+		}
+	}
+}

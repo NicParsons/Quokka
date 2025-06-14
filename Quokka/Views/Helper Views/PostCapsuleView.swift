@@ -10,22 +10,24 @@ struct PostCapsuleView: View {
 		HStack {
 			HStack {
 				nowPlayingIndicator
-				Text("\(post.shortDescription.capitalizingFirstLetter()) (\(post.recording.duration == 0 ? "" : post.recording.duration.formattedAsDuration()))")
+				Text("\(post.shortDescription.capitalizingFirstLetter()) (\(formattedDuration))")
 			}
 			.accessibilityElement(children: .combine)
-			.accessibilityLabel(Text("\(post.shortDescription.capitalizingFirstLetter()) (\(post.recording.duration == 0 ? "-" : post.recording.duration.formattedAsDuration())) \(nowPlaying() ? ", now playing" : "")"))
+			.accessibilityLabel(Text("\(post.shortDescription.capitalizingFirstLetter()) (\(formattedDuration)) \(nowPlaying() ? ", now playing" : "")"))
 			#if os(macOS)
 				Spacer()
-			PlayPauseButton(recording: post.recording)
-			DownloadButton(recording: post.recording)
+			if let recording = post.recording {
+				PlayPauseButton(recording: recording)
+				DownloadButton(recording: recording)
+			} // if let
 			DeleteButton(shouldDelete: $confirmationDialogIsShown)
 			#else
-				post.recording.statusIndicator
+				post.recordingStatusIndicator
 			#endif
 		} // HStack
 		.padding()
 		.padding(.horizontal)
-		.frame(maxWidth: .infinity)
+		.frame(minWidth: 100, maxWidth: 250)
 		.frame(height: 50)
 		.background(
 			Capsule()
@@ -44,17 +46,22 @@ struct PostCapsuleView: View {
 #endif
 		.onAppear {
 				Task {
-					post.recording.duration = await post.recording.updatedDuration()
-				}
-		}
+					if let recording = post.recording {
+						// safe to unwrap
+						post.recording!.duration = await recording.updatedDuration()
+					} // if let
+				} // task
+		} // on appear
 	} // body
 
 	func nowPlaying() -> Bool {
-		return model.isPlaying(post.recording.fileURL)
+		guard let recording = post.recording else { return false }
+		return model.isPlaying(recording.fileURL)
 	}
 
 	func playPause() {
-		nowPlaying() ? model.pause(context) : model.startPlaying(post.recording, context: context)
+		guard let recording = post.recording else { return }
+		nowPlaying() ? model.pause(context) : model.startPlaying(recording, context: context)
 	}
 } // View
 
@@ -66,4 +73,16 @@ extension PostCapsuleView {
 return Image(systemName: "waveform.circle")
 	} // end if
 	} // variable
-}
+
+	var duration: TimeInterval {
+		post.recording?.duration ?? 0
+	} // duration
+
+	var formattedDuration: String {
+		if duration == 0 {
+			return "❗️"
+		} else {
+			return duration.formattedAsDuration()
+		} // end if
+	} // formattedDuration
+} // extension

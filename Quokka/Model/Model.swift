@@ -177,8 +177,9 @@ print("About to resume playback.")
 			return
 		}
 
-		if let post = getPost(withURL: url, fromContext: context) {
-			post.recording.updatePlaybackPosition(to: player.currentTime)
+		if let post = getPost(withURL: url, fromContext: context), let _ = post.recording {
+			// safe to unwrap post.recording
+			post.recording!.updatePlaybackPosition(to: player.currentTime)
 			do {
 				try context.save()
 				print("Updated playback position.")
@@ -366,9 +367,9 @@ delete(post, fromContext: context)
 		// and optionally delete the recording from disk
 
 		print("About to delete \(post.description).")
-		if isPlaying(post.recording.fileURL) { self.stopPlaying(context) }
+		if isPlaying(post.recording?.fileURL) { self.stopPlaying(context) }
 
-		if deleteRecordingFile { deleteRecording(post.recording.fileURL) }
+		if deleteRecordingFile { deleteRecording(post.recording?.fileURL) }
 		context.delete(post)
 		do {
 			try context.save()
@@ -487,7 +488,7 @@ print("Unable to fetch existing posts to compare with.")
 		do {
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
-				if !posts.contains(where: { $0.recording.fileURL == url }) {
+				if !posts.contains(where: { $0.recording?.fileURL == url }) {
 let _ = save(url, forAuthor: author, inContext: context)
 				} // end if
 			} // end loop
@@ -502,10 +503,15 @@ let _ = save(url, forAuthor: author, inContext: context)
 		do {
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
-				if !FileManager.default.fileExists(atPath: post.recording.fileURL.path) {
-					print("The recording at the following path no longer appeares to exist: \(post.recording.fileURL.path).")
+				if let recording = post.recording {
+					if !FileManager.default.fileExists(atPath: recording.fileURL.path) {
+						print("The \(post.description) has a recording at the following path which no longer appeares to exist: \(recording.fileURL.path).")
 						delete(post, fromContext: context)
 					} // end if
+				} else {
+					print("The \(post.description) does not have any recording.")
+					delete(post, fromContext: context)
+				} // if let
 			} // end loop
 			try context.save()
 		} catch {

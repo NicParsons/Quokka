@@ -101,7 +101,7 @@ struct Recording: Identifiable, Codable {
 			} // do try catch
 		} // var declaration
 
-		var statusIndicator: some View {
+		var statusIndicator: ModifiedContent<Image, AccessibilityAttachmentModifier> {
 			switch status {
 			case .remote:
 				return Image(systemName: "icloud")
@@ -120,6 +120,10 @@ struct Recording: Identifiable, Codable {
 					.accessibilityLabel("Indeterminate")
 			} // switch
 		}
+
+	static var errorIndicator: ModifiedContent<Image, AccessibilityAttachmentModifier> {
+		Image(systemName: "exclamationmark.icloud").accessibilityLabel("Error")
+	}
 
 		enum DownloadStatus: String, Hashable {
 	case downloaded, downloading, remote, error, unknown
@@ -160,3 +164,10 @@ extension Recording {
 		}
 	} // func
 } // extension
+
+
+extension Recording: Equatable {
+	static func == (lhs: Recording, rhs: Recording) -> Bool {
+		return lhs.fileURL == rhs.fileURL
+	}
+}

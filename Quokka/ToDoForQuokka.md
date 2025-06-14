@@ -4,7 +4,7 @@
 
 * fix bug with navigation following making TabView sidebar adaptable
 * playback position not saving
-* fix FocusedValues in menu bar controls
+* on macOS, it's possible to have the same recording playing twice at different playback positions if you use both space bar and return to start playback
 
 ## Features
 

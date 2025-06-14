@@ -20,7 +20,7 @@ struct HomeScreen: View {
 					CalendarList(selectedPost: $selectedPost)
 				}
 
-				#if debug
+				#if DEBUG
 				Tab("Test ShareLink", systemImage: "square.and.arrow.up", value: "test") {
 TestShareView()
 				}
@@ -33,6 +33,12 @@ TestShareView()
 				if let postID = selectedPostID {
 					selectedPost = posts[postID]
 				} // end if
+
+				Task {
+					await model.removeMissingRecordings(inContext: modelContext)
+					// this view is only displayed if session.user exists, but let's unrap safely anyway
+					if let user = session.user { model.checkForNewlyAddedRecordings(context: modelContext, defaultUser: user) }
+				} // end task
 			} // on appear
 
 			.onChange(of: selectedPost) { oldValue, newValue in

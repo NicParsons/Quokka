@@ -56,7 +56,7 @@ extension Post {
 		if let authorID {
 			return #Predicate<Post> { post in
 				post.author != nil &&
-				post.author!.id == authorID &&
+				post.author?.id == authorID &&
 				post.date >= start &&
 				post.date <= end
 			} // predicate
@@ -72,7 +72,7 @@ extension Post {
 	static func predicate(authorID: User.ID) -> Predicate<Post> {
 		#Predicate<Post> { post in
 			post.author != nil &&
-			post.author!.id == authorID
+			post.author?.id == authorID
 		}
 	} // func
 

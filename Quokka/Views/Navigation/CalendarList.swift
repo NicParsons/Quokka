@@ -13,7 +13,15 @@ struct CalendarList: View {
 			ScrollViewReader { proxy in
 				List(selection: $selectedPost) {
 					ForEach(calendarDays) { day in
-						CalendarDaySection(day: day)
+						Section(header: Text(day.date.formatted(date: .complete, time: .omitted))) {
+							ForEach(day.posts) { post in
+								NavigationLink {
+									PostView(post: post)
+								} label: {
+									PostCapsuleView(post: post)
+								} // navigation link
+							} // ForEach
+						} // section
 					} // ForEach
 				} // List
 				// on macOS, we want the accessibility actions to be available without needing to first interact with the list to select the individual recording row
@@ -72,19 +80,3 @@ extension CalendarList {
 		model.postsSortedByDay(posts)
 	} // var
 } // extension
-
-struct CalendarDaySection: View {
-	let day: CalendarDay
-
-	var body: some View {
-		Section(header: Text(day.date.formatted(date: .complete, time: .omitted))) {
-			ForEach(day.posts) { post in
-				NavigationLink {
-					PostView(post: post)
-				} label: {
-					PostCapsuleView(post: post)
-				} // navigation link
-			} // ForEach
-		} // section
-	} // body
-} // view

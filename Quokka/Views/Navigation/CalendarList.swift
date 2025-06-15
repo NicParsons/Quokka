@@ -9,17 +9,11 @@ struct CalendarList: View {
 	@State private var confirmationDialogIsShown = false
 
 	var body: some View {
-		NavigationView {
-			ScrollViewReader { proxy in
 				List(selection: $selectedPost) {
 					ForEach(calendarDays) { day in
 						Section(header: Text(day.date.formatted(date: .complete, time: .omitted))) {
 							ForEach(day.posts) { post in
-								NavigationLink {
-									PostView(post: post)
-								} label: {
-									PostCapsuleView(post: post)
-								} // navigation link
+								PostCapsuleView(post: post)
 							} // ForEach
 						} // section
 					} // ForEach
@@ -32,33 +26,20 @@ struct CalendarList: View {
 #endif
 				.enableDeletingWithKeyboard(of: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
 				.confirmDeletion(ofSelected: $selectedPost, if: $confirmationDialogIsShown)
-				.onAppear {
-					if selectedPost == nil {
-						if let mostRecentDay = calendarDays.last {
-							selectedPost = mostRecentDay.posts.last
-						} // end if let
-					} // end if
-				} // on appear
-				.onChange(of: selectedPost) { oldValue, newValue in
-					proxy.scrollTo(newValue)
-				}
 				.overlay(Group {
 					if posts.isEmpty {
 						Text("Diary entries that you record or import in the “Today” view will show up here.")
 							.font(.largeTitle)
 							.multilineTextAlignment(.center)
-					}
+					} // end if
 				}) // overlay group
-			} // ScrollViewReader
-		} // NavigationView
-		.navigationTitle(Text("Your Audio Journal"))
-		.toolbar {
-#if os(iOS)
-			ToolbarItem(placement: .navigationBarTrailing) {
-				EditButton()
-			} // ToolbarItem
-#endif
-		} // Toolbar
+		.onAppear {
+			if selectedPost == nil {
+				if let mostRecentDay = calendarDays.last {
+					selectedPost = mostRecentDay.posts.last
+				} // end if let
+			} // end if
+		} // on appear
 	} // body
 
 	init(

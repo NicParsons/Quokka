@@ -17,7 +17,7 @@ struct HomeScreen: View {
 				} // today tab
 
 				Tab("Journal", systemImage: "book.circle", value: "journal") {
-					CalendarList(author: session.user, selectedPost: $selectedPost)
+JournalView(selectedPost: $selectedPost)
 				}
 
 				#if DEBUG

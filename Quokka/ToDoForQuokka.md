@@ -2,9 +2,9 @@
 
 ## Bugs
 
-* fix bug with navigation following making TabView sidebar adaptable
+* selection in Journal View not working
 * playback position not saving
-* on macOS, it's possible to have the same recording playing twice at different playback positions if you use both space bar and return to start playback
+* on macOS, it's possible to have the same recording playing twice at different playback positions if you use both space bar and return to start playback (i.e. playing state and playback position is not synced between the window view and the menu bar controls)
 
 ## Features
 

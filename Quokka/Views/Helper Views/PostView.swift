@@ -6,8 +6,11 @@ struct PostView: View {
 	@Bindable var post: Post
 
 	var body: some View {
-		NavigationStack {
 			VStack {
+				Text(post.description.capitalizingFirstLetter())
+					.font(.headline)
+					.accessibilityHeading(.h1)
+
 				UserPicker(selectedUser: $post.author, title: "Author", pickerStyle: .menu)
 				DatePicker("Date",
 						   selection: $post.date,
@@ -34,8 +37,7 @@ struct PostView: View {
 						} // end if
 					} // ended
 			) // Gesture
-		} // Nav Stack
-		.navigationTitle(post.description.capitalizingFirstLetter())
+
 		.toolbar {
 			// currently implementation of ShareButton only uses Transferrable conformance of Recording or passes the post.recording.fileURL directly
 			// but Post's implementation of Transferrable conformance force unwraps post.recording, so to be safe let's not show ShareButton if there is no recording
@@ -59,7 +61,7 @@ struct PostView: View {
 		} // on appear
 		#if os(iOS)
 		.onDisappear {
-			if model.isPlaying(post.recording.fileURL) { model.pause(context) }
+			if model.isPlaying(post.recording?.fileURL) { model.pause(context) }
 		} // on disappear
 		#endif
 	} // body

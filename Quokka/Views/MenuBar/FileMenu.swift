@@ -17,6 +17,13 @@ struct FileMenu: Commands {
 					.environment(model)
 			} // if let
 			#endif
+
+			//TODO: Hide the conditional logic inside the button's action and disable the button if all conditions are not met.
+			if let unwrappedPost = selectedPost, let post = unwrappedPost, let _ = post.recording {
+				ShareButton(post: post)
+					.environment(model)
+					.keyboardShortcut("s", modifiers: [.command, .option])
+			} // if let
 		} // command group
 	} // body
 } // Commands struct

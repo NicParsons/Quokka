@@ -25,6 +25,8 @@ struct PostCapsuleView: View {
 				post.recordingStatusIndicator
 			#endif
 		} // HStack
+
+		// style
 		.padding()
 		.padding(.horizontal)
 		.frame(minWidth: 100, maxWidth: 250)
@@ -35,6 +37,7 @@ struct PostCapsuleView: View {
 				.shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
 		) // background
 		.padding(.horizontal, 8)
+
 		// macOS automatically combines the PostCapsule into one accessibility element which VoiceOver can interact with to access the child elements
 		// but on iOS the elements are separate by default which makes navigating more verbose and will make it difficult to know which play/delete button relates to which entry
 #if os(iOS)
@@ -44,6 +47,17 @@ struct PostCapsuleView: View {
 		// unless we override it like this
 .accessibilityAction { playPause() }
 #endif
+
+		// context menu
+.contextMenu {
+	if let recording = post.recording {
+PlayPauseButton(recording: recording)
+DownloadButton(recording: recording)
+	} // if let
+DeleteButton(shouldDelete: $confirmationDialogIsShown)
+	if let _ = post.recording { ShareButton(post: post) }
+} // context menu
+
 		.onAppear {
 				Task {
 					if let recording = post.recording {

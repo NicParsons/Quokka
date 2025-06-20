@@ -9,7 +9,6 @@
 
 ## Features
 
-* recording.date when importing file should be based on the file's creation date
 * conversation/thread view, might require adding recipients property to Post
 * playback should integrate with system's now playing API
 * time elapsed while recording (recording nowplaying view))

@@ -436,9 +436,10 @@ return getICloudToken() != nil
 	}
 
 	// Save new recording and post
-	func save(_ url: URL, forAuthor author: User? = nil, forDate date: Date = Date.now, inContext context: ModelContext) -> Post {
+	func save(_ url: URL, forAuthor author: User? = nil, inContext context: ModelContext) -> Post {
 		print("Saving \(url).")
-		let recording = Recording(fileURL: url)
+		let date = Recording.creationDate(for: url)
+		let recording = Recording(fileURL: url, date: date)
 		let post = Post(date: date, author: author, recording: recording)
 		context.insert(post)
 		do {

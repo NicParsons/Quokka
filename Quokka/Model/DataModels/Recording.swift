@@ -19,6 +19,15 @@ struct Recording: Identifiable, Codable {
 				} // end if
 			} // end creationDate
 
+	static func creationDate(for url: URL) -> Date {
+		if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as [FileAttributeKey: Any],
+			let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
+			return creationDate
+		} else {
+			return Date.now
+		} // end if
+	} // func
+
 		var playbackPosition: TimeInterval = 0
 
 		mutating func updatePlaybackPosition(to time: TimeInterval) {

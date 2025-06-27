@@ -19,6 +19,7 @@ struct PostCapsuleView: View {
 			if let recording = post.recording {
 				PlayPauseButton(recording: recording)
 				DownloadButton(recording: recording)
+				ShareButton(post: post)
 			} // if let
 			DeleteButton(shouldDelete: $confirmationDialogIsShown)
 			#else

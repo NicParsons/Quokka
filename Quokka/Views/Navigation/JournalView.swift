@@ -7,14 +7,16 @@ struct JournalView: View {
 	@Environment(SessionManager.self) private var session
 	@Binding var selectedPost: Post?
 	@State private var confirmationDialogIsShown = false
+	@State private var presented: Bool = false
 
 	var body: some View {
-		NavigationSplitView {
+		NavigationView {
 			CalendarList(author: session.user, selectedPost: $selectedPost)
-		} detail: {
-			if let post = selectedPost {
-				PostView(post: post)
-			} // if let
+				.inspector(isPresented: $presented) {
+					if let post = selectedPost {
+						PostView(post: post)
+					} // if let
+				} // inspect
 		}// NavigationView
 		.navigationTitle(Text("Your Audio Journal"))
 		.toolbar {

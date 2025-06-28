@@ -16,10 +16,6 @@ struct PostView: View {
 						   selection: $post.date,
 						   displayedComponents: [.date, .hourAndMinute])
 				.datePickerStyle(.compact)
-
-				Spacer()
-
-				if let recording = post.recording { NowPlayingView(recording: recording) }
 			} // VStack
 			.padding()
 			.frame(maxWidth: .infinity, maxHeight: .infinity)

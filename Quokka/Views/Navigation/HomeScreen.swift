@@ -30,6 +30,13 @@ TestShareView()
 
 			.focusedSceneValue(\.post, selectedPost)
 
+				.safeAreaInset(edge: .bottom) {
+					if model.isPlaying {
+					NowPlayingView()
+						.frame(maxWidth: .infinity)
+				} // end if
+			} // safe area inset
+
 			.onAppear {
 				if let postID = selectedPostID {
 					selectedPost = posts[postID]

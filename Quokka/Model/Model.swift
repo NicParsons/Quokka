@@ -15,6 +15,7 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	var usesICloud = true
 	var iCloudEnabled = false
 	var documentsDirectory: URL!
+	var currentlyPlayingRecording: Recording?
 
 	var currentlyPlayingURL: URL? {
 		if let player = audioPlayer {
@@ -107,6 +108,7 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 			#endif
 				audioPlayer.currentTime = recording.playbackPosition
 print("Set playback position to \(audioPlayer.currentTime). The track's playback position is \(recording.playbackPosition).")
+			currentlyPlayingRecording = recording
 					audioPlayer.play()
 			DispatchQueue.main.async {
 				self.isPlaying = true

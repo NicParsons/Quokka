@@ -31,7 +31,7 @@ TestShareView()
 			.focusedSceneValue(\.post, selectedPost)
 
 				.safeAreaInset(edge: .bottom) {
-					if model.isPlaying {
+					if model.currentlyPlayingRecording != nil {
 					NowPlayingView()
 						.frame(maxWidth: .infinity)
 				} // end if

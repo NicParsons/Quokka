@@ -19,6 +19,10 @@ struct DayView: View {
 				Spacer()
 				ImportButton()
 			} // HStack
+
+			if model.isRecording {
+RecordingProgressView()
+			} // end if
 		} // VStack
 		} // Navigation View
 		.navigationTitle(Text(date.stringWithRelativeFormatting()))

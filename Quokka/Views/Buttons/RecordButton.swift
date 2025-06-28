@@ -41,12 +41,12 @@ Label("Record", systemImage: "record.circle")
 		} else {
 		switch AVCaptureDevice.authorizationStatus(for: .audio) {
 		case .authorized:
-			self.model.startRecording()
+			self.model.startRecording(context: context)
 		case .notDetermined:
 			print("About to prompt for access to the microphone.")
 			AVCaptureDevice.requestAccess(for: .audio) { granted in
 				if granted {
-					self.model.startRecording()
+					self.model.startRecording(context: context)
 				} else {
 					print("The user denied access to the microphone.")
 				} // end if access granted

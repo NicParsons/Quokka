@@ -3,6 +3,7 @@ import AVFoundation
 
 struct RecordOnlyButton: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@State private var alertIsPresent = false
 
 	var body: some View {
@@ -10,12 +11,12 @@ struct RecordOnlyButton: View {
 				action: {
 					switch AVCaptureDevice.authorizationStatus(for: .audio) {
 					case .authorized:
-						self.model.startRecording()
+						self.model.startRecording(context: context)
 					case .notDetermined:
 						print("About to prompt for access to the microphone.")
 						AVCaptureDevice.requestAccess(for: .audio) { granted in
 							if granted {
-								self.model.startRecording()
+								self.model.startRecording(context: context)
 							} else {
 								print("The user denied access to the microphone.")
 							} // end if access granted
@@ -42,13 +43,3 @@ Label("Record", systemImage: "record.circle")
 	} // alert
 	} // body
 } // View
-
-struct RecordOnlyButton_Previews: PreviewProvider {
-    static var previews: some View {
-        RecordOnlyButton()
-    }
-}
-
-//  RecordOnlyButton.swift
-//  AudioDiary
-//  Created by Nicholas Parsons on 22/4/2022.

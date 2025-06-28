@@ -58,11 +58,13 @@ class Model: NSObject, AVAudioPlayerDelegate {
 		   AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
 	   ]
 
-	func startRecording() {
+	func startRecording(context: ModelContext) {
 		if isRecording {
 print("A recording is already in progress.")
 return
 		}
+
+		stopPlaying(context)
 
 		print("Preparing to start recording.")
 		let filePath = newFileURL()
@@ -84,6 +86,30 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		}
 	} // func
 
+	func pauseRecording() {
+		if !isRecording { return }
+		guard let audioRecorder = audioRecorder else { return }
+		audioRecorder.pause()
+		AudioServicesPlaySystemSound(1114) // end_record.caf
+		DispatchQueue.main.async {
+			self.isRecording = false
+		} // main queue
+		print("Recording paused.")
+	} // func
+
+	func resumeRecording(context: ModelContext) {
+		guard let audioRecorder = audioRecorder else { return }
+		stopPlaying(context)
+		// play system sound before recording starts so that sound not captured by recording
+		AudioServicesPlaySystemSound(1113) // begin_record.caf
+		// sound effect still captured on recording
+		audioRecorder.record()
+		DispatchQueue.main.async {
+			self.isRecording = true
+		}
+		print("Recording resumed.")
+	} // func
+
 	func stopRecording(forAuthor author: User? = nil, context: ModelContext) {
 		// should be safe to force unwrap audioRecorder as stopRecording can only be called if a recording has started
 		let newFileURL = audioRecorder!.url
@@ -93,6 +119,27 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		isRecording = false
 		print("Recording stopped.")
 let _ = save(newFileURL, forAuthor: author, inContext: context)
+	} // func
+
+	func playRecording(_ url: URL, context: ModelContext) {
+		if isPlaying { stopPlaying(context) }
+		DispatchQueue.main.async {
+			self.currentlyPlayingRecording = nil
+		}
+
+		print("About to play \(url).")
+
+		do {
+			audioPlayer = try AVAudioPlayer(contentsOf: url)
+			audioPlayer.delegate = self
+			#if os(iOS)
+			setupNotifications()
+			#endif
+					audioPlayer.play()
+			print("Started playing \(url).")
+				} catch {
+					print("Playback failed.")
+				} // do try catch
 	} // func
 
 	func startPlaying(_ recording: Recording, context: ModelContext) {

@@ -64,6 +64,10 @@ struct Recording: Identifiable, Codable {
 			return seconds
 		} // func
 
+	mutating func updateDuration() async {
+duration = await updatedDuration()
+	}
+
 		func download() throws -> Bool {
 			if status != .downloaded && status != .downloading {
 				print("About to download \(fileURL.description).")

@@ -15,56 +15,69 @@ struct RecordingProgressView: View {
 				.onAppear {
 					if model.isRecording {
 						startTimer()
-					}
-				}
+					} // end if
+				} // on appear
 				.onDisappear {
 					stopTimer()
-				}
+				} // on disappear
 
+			// buttons
 			HStack(spacing: 20) {
+				// show play button if recording is paused
+				if model.isRecording {
+					Spacer()
+				} else {
+					// play recording button
+					Button(action: {
+						if isListeningBack {
+							model.audioPlayer?.stop()
+							isListeningBack = false
+						} else if let url = model.audioRecorder?.url {
+							try? model.playRecording(url, context: context)
+							isListeningBack = true
+						} // end if
+					}) {
+						Label(isListeningBack ? "Pause" : "Play", systemImage: isListeningBack ? "stop.fill" : "headphones")
+							.padding()
+							.background(Color.purple.opacity(0.2))
+							.clipShape(RoundedRectangle(cornerRadius: 10))
+					} // button
+				} // end if
+
+				// recording control
 				Button(action: {
 					if model.isRecording {
-						model.resumeRecording(context: context)
+						model.pause(context)
 						stopTimer()
 					} else {
-						model.startRecording(context: context)
+						model.resumeRecording(context: context)
 						startTimer()
 					}
 				}) {
-					Label(model.isRecording ? "Stop" : "Resume", systemImage: model.isRecording ? "pause.circle" : "play.circle")
+					Label(model.isRecording ? "Stop" : "Resume", systemImage: model.isRecording ? "pause.circle" : "record.circle")
 						.padding()
 						.background(Color.blue.opacity(0.2))
 						.clipShape(RoundedRectangle(cornerRadius: 10))
 				}
 
-				Button("Save") {
-					if let user = session.user {
-						model.stopRecording(forAuthor: user, context: context)
-					}
-					stopTimer()
-				}
-				.padding()
-				.background(Color.green.opacity(0.2))
-				.clipShape(RoundedRectangle(cornerRadius: 10))
-			}
-
-			Button(action: {
-				if isListeningBack {
-					model.audioPlayer?.stop()
-					isListeningBack = false
-				} else if let url = model.audioRecorder?.url {
-					try? model.playRecording(url, context: context)
-					isListeningBack = true
-				}
-			}) {
-				Label(isListeningBack ? "Stop Listening" : "Listen", systemImage: isListeningBack ? "stop.fill" : "headphones")
+				// show  a save button if recording is paused
+				if model.isRecording {
+					Spacer()
+				} else {
+					Button("Save") {
+						if let user = session.user {
+							model.stopRecording(forAuthor: user, context: context)
+						} // end if
+						stopTimer()
+					} // button
 					.padding()
-					.background(Color.purple.opacity(0.2))
+					.background(Color.green.opacity(0.2))
 					.clipShape(RoundedRectangle(cornerRadius: 10))
-			}
-		}
+				} // end if is recording
+			} // HStack
+		} // VStack
 		.padding()
-	}
+	} // body
 
 	private func startTimer() {
 		elapsedTime = model.audioRecorder?.currentTime ?? 0

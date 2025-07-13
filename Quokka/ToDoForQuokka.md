@@ -2,9 +2,7 @@
 
 ## Bugs
 
-* bugs in RecordingProgressView
-* stopRecording method should not play same sound as pause recording
-* stop button in recording progress view should be renamed pause
+* need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
 * playback position not saving
 * on macOS, it's possible to have the same recording playing twice at different playback positions if you use both space bar and return to start playback (i.e. playing state and playback position is not synced between the window view and the menu bar controls)

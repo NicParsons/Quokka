@@ -116,7 +116,8 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 		guard let audioRecorder = audioRecorder else { return }
 		let newFileURL = audioRecorder.url
 		audioRecorder.stop()
-		AudioServicesPlaySystemSound(1114) // end_record.caf
+		//TODO: Play appropriate system sound
+		// AudioServicesPlaySystemSound(1109)
 		// alternative for macOS: playSystemSound(named: "Bottle", ofType: .aiff)
 		DispatchQueue.main.async {
 			self.recordingStatus = .isNotRecording

@@ -2,6 +2,7 @@
 
 ## Bugs
 
+* trying to add playback rate control to NowPlayingView
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
 * playback position not saving

@@ -25,6 +25,12 @@ class Model: NSObject, AVAudioPlayerDelegate {
 		} // end if
 	} // variable
 
+	var playbackRate: Float = 1.0 {
+		didSet {
+			audioPlayer?.rate = playbackRate
+		} // didSet
+	} // var
+
 	func isPlaying(_ url: URL?) -> Bool {
 		guard let url = url else { return false }
 		return isPlaying && url == currentlyPlayingURL
@@ -154,6 +160,8 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 
 		do {
 			audioPlayer = try AVAudioPlayer(contentsOf: recording.fileURL)
+			audioPlayer.enableRate = true
+			audioPlayer.rate = playbackRate
 			audioPlayer.delegate = self
 			#if os(iOS)
 			setupNotifications()

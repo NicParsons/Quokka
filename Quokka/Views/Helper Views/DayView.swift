@@ -20,7 +20,7 @@ struct DayView: View {
 				ImportButton()
 			} // HStack
 
-			if model.isRecording {
+			if model.recordingStatus != .isNotRecording {
 RecordingProgressView()
 			} // end if
 		} // VStack

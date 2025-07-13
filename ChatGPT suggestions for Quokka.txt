@@ -1,0 +1,50 @@
+
+	•	❌ Don’t store full URL types – they aren’t Codable/Sendable-compatible by default
+	•	❌ Don’t assume the file will remain available forever – it’s good practice to check FileManager.default.fileExists(atPath:) before use
+
+🔧 If Using Transferable
+
+If you’re using the Transferable protocol (e.g. for drag and drop or ShareLink), it helps to have a wrapper that accesses the file via fileURL, but the Recording itself should still only store filePath.
+
+
+var filePath: String // Persist this
+var fileURL: URL? {
+    get {
+        URL(fileURLWithPath: filePath)
+    }
+    set {
+        filePath = newValue?.path ?? ""
+    }
+} 
+
+
+Then update your @Model to persist filePath, not fileURL.
+
+2. ⚠️ fileURL?.lastPathComponent Could Be Empty
+
+Fallbacks like fileName or description depend on fileURL, which might be nil or invalid. Consider caching the original file name on creation to avoid surprises.
+
+✅ Option: 
+
+Use this as a fallback for display and logs.
+
+3. ⚠️ DownloadStatus May Be Overloaded with Logic
+
+Your status property is doing a lot (fetching multiple URLResourceValues, performing logic). That’s okay for small apps, but may cause blocking or delays in UI.
+
+✅ Suggest:
+
+Move logic into an async method or expose a .updateStatus() method that stores it to a property.
+
+
+init(filePath: String) {
+    self.filePath = filePath
+    self.playbackPosition = 0
+    self.originalFileName = URL(fileURLWithPath: filePath).lastPathComponent
+} 
+
+var filePath: String = "" // ✅ satisfies SwiftData 
+
+var fileURL: URL? {
+    filePath.isEmpty ? nil : URL(fileURLWithPath: filePath)
+} 

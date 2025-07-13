@@ -12,7 +12,7 @@ struct StopRecordingButton: View {
 				}) {
 						Label("Stop Recording", systemImage: "stop.circle")
 			} // Button
-				.disabled(!model.isRecording)
+				.disabled(model.recordingStatus == .isNotRecording)
 				.foregroundColor(.red)
 	} // body
 } // View

@@ -9,7 +9,7 @@ import SwiftUI
 class Model: NSObject, AVAudioPlayerDelegate {
 	var audioRecorder: AVAudioRecorder!
 	var audioPlayer: AVAudioPlayer!
-	var isRecording = false
+	var recordingStatus: RecordingStatus = .isNotRecording
 	var isPlaying = false
 	//TODO: Need to check and update this programatically.
 	var usesICloud = true
@@ -59,7 +59,7 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	   ]
 
 	func startRecording(context: ModelContext) {
-		if isRecording {
+		if recordingStatus == .isRecording {
 print("A recording is already in progress.")
 return
 		}
@@ -77,7 +77,7 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 			// sound effect still captured on recording
 			audioRecorder.record()
 			DispatchQueue.main.async {
-				self.isRecording = true
+				self.recordingStatus = .isRecording
 			}
 			print("Recording started.")
 		} catch {
@@ -87,36 +87,40 @@ audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
 	} // func
 
 	func pauseRecording() {
-		if !isRecording { return }
+		if recordingStatus != .isRecording { return }
 		guard let audioRecorder = audioRecorder else { return }
 		audioRecorder.pause()
 		AudioServicesPlaySystemSound(1114) // end_record.caf
 		DispatchQueue.main.async {
-			self.isRecording = false
+			self.recordingStatus = .isPaused
 		} // main queue
 		print("Recording paused.")
 	} // func
 
 	func resumeRecording(context: ModelContext) {
 		guard let audioRecorder = audioRecorder else { return }
-		stopPlaying(context)
+		//TODO: stop recording playback
+		if isPlaying { stopPlaying(context) }
 		// play system sound before recording starts so that sound not captured by recording
 		AudioServicesPlaySystemSound(1113) // begin_record.caf
 		// sound effect still captured on recording
 		audioRecorder.record()
 		DispatchQueue.main.async {
-			self.isRecording = true
+			self.recordingStatus = .isRecording
 		}
 		print("Recording resumed.")
 	} // func
 
 	func stopRecording(forAuthor author: User? = nil, context: ModelContext) {
-		// should be safe to force unwrap audioRecorder as stopRecording can only be called if a recording has started
-		let newFileURL = audioRecorder!.url
-		audioRecorder!.stop()
+		if recordingStatus == .isNotRecording { return }
+		guard let audioRecorder = audioRecorder else { return }
+		let newFileURL = audioRecorder.url
+		audioRecorder.stop()
 		AudioServicesPlaySystemSound(1114) // end_record.caf
 		// alternative for macOS: playSystemSound(named: "Bottle", ofType: .aiff)
-		isRecording = false
+		DispatchQueue.main.async {
+			self.recordingStatus = .isNotRecording
+		}
 		print("Recording stopped.")
 let _ = save(newFileURL, forAuthor: author, inContext: context)
 	} // func
@@ -441,6 +445,7 @@ delete(post, fromContext: context)
 
 	func importRecording(_ url: URL, forAuthor author: User? = nil, toContext context: ModelContext? = nil) throws -> Post? {
 		let fileName = url.lastPathComponent
+		let date = Recording.creationDate(for: url)
 		let destinationURL = recordingsDirectory().appendingPathComponent(fileName, isDirectory: false)
 		let fileManager = FileManager.default
 		do {
@@ -452,7 +457,7 @@ delete(post, fromContext: context)
 			throw error
 		}
 		if let context = context {
-			return save(url, forAuthor: author, inContext: context)
+			return save(url, forAuthor: author, onDate: date, inContext: context)
 		} else {
 			return nil
 		}
@@ -485,9 +490,9 @@ return getICloudToken() != nil
 	}
 
 	// Save new recording and post
-	func save(_ url: URL, forAuthor author: User? = nil, inContext context: ModelContext) -> Post {
+	func save(_ url: URL, forAuthor author: User? = nil, onDate date: Date = Date.now, inContext context: ModelContext) -> Post {
 		print("Saving \(url).")
-		let date = Recording.creationDate(for: url)
+		// let date = Recording.creationDate(for: url)
 		let recording = Recording(fileURL: url, date: date)
 		let post = Post(date: date, author: author, recording: recording)
 		context.insert(post)
@@ -539,7 +544,8 @@ print("Unable to fetch existing posts to compare with.")
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
 				if !posts.contains(where: { $0.recording?.fileURL == url }) {
-let _ = save(url, forAuthor: author, inContext: context)
+					let date = Recording.creationDate(for: url)
+let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 				} // end if
 			} // end loop
 		} catch {
@@ -580,3 +586,7 @@ iCloudEnabled = isUserLoggedIntoIcloud()
 		#endif
 	}
 } // class
+
+enum RecordingStatus {
+case isRecording, isPaused, isNotRecording
+}

@@ -10,19 +10,26 @@ struct RecordButton: View {
 
     var body: some View {
 			Button(action: { record() }) {
-					if model.isRecording {
-						Label("Stop Recording", systemImage: "stop.circle")
+				switch model.recordingStatus {
+				case .isRecording:
+						Label("Pause Recording", systemImage: "pause.circle")
 							.frame(width: 100, height: 50, alignment: .center)
 							.background(Color.red)
 							.foregroundColor(.white)
 							.cornerRadius(8)
-					} else {
+				case .isNotRecording:
 Label("Record", systemImage: "record.circle")
 							.frame(width: 100, height: 50, alignment: .center)
 							.background(Color.blue)
 							.foregroundColor(.white)
 							.cornerRadius(8)
-					} // end if
+				case .isPaused:
+					Label("Resume", systemImage: "record.circle")
+												.frame(width: 100, height: 50, alignment: .center)
+												.background(Color.blue)
+												.foregroundColor(.white)
+												.cornerRadius(8)
+					} // end switch
 			} // Button
 			.accessibilityAddTraits(.startsMediaSession)
 	.alert("Please grant the app access to your microphone",
@@ -36,9 +43,12 @@ Label("Record", systemImage: "record.circle")
 
 	func record() {
 		guard let user = session.user else { return }
-		if model.isRecording {
-			model.stopRecording(forAuthor: user, context: context)
-		} else {
+		// this would make more sense as a switch but do I want a switch within a switch?
+		if model.recordingStatus == .isRecording {
+			model.pauseRecording()
+		} else if model.recordingStatus == .isPaused {
+			model.resumeRecording(context: context)
+		} else if model.recordingStatus == .isNotRecording {
 		switch AVCaptureDevice.authorizationStatus(for: .audio) {
 		case .authorized:
 			self.model.startRecording(context: context)

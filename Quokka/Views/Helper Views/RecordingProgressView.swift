@@ -13,7 +13,7 @@ struct RecordingProgressView: View {
 			Text(elapsedTime.formattedAsDuration())
 				.font(.system(.title, design: .monospaced))
 				.onAppear {
-					if model.isRecording {
+					if model.recordingStatus == .isRecording {
 						startTimer()
 					} // end if
 				} // on appear
@@ -24,9 +24,7 @@ struct RecordingProgressView: View {
 			// buttons
 			HStack(spacing: 20) {
 				// show play button if recording is paused
-				if model.isRecording {
-					Spacer()
-				} else {
+				if model.recordingStatus == .isPaused {
 					// play recording button
 					Button(action: {
 						if isListeningBack {
@@ -42,28 +40,28 @@ struct RecordingProgressView: View {
 							.background(Color.purple.opacity(0.2))
 							.clipShape(RoundedRectangle(cornerRadius: 10))
 					} // button
+				} else {
+					Spacer()
 				} // end if
 
 				// recording control
 				Button(action: {
-					if model.isRecording {
-						model.pause(context)
+					if model.recordingStatus == .isRecording {
+						model.pauseRecording()
 						stopTimer()
-					} else {
+					} else if model.recordingStatus == .isPaused {
 						model.resumeRecording(context: context)
 						startTimer()
 					}
 				}) {
-					Label(model.isRecording ? "Stop" : "Resume", systemImage: model.isRecording ? "pause.circle" : "record.circle")
+					Label(model.recordingStatus == .isRecording ? "Stop" : "Resume", systemImage: model.recordingStatus == .isRecording ? "pause.circle" : "record.circle")
 						.padding()
 						.background(Color.blue.opacity(0.2))
 						.clipShape(RoundedRectangle(cornerRadius: 10))
 				}
 
 				// show  a save button if recording is paused
-				if model.isRecording {
-					Spacer()
-				} else {
+				if model.recordingStatus == .isPaused {
 					Button("Save") {
 						if let user = session.user {
 							model.stopRecording(forAuthor: user, context: context)
@@ -73,6 +71,8 @@ struct RecordingProgressView: View {
 					.padding()
 					.background(Color.green.opacity(0.2))
 					.clipShape(RoundedRectangle(cornerRadius: 10))
+				} else {
+					Spacer()
 				} // end if is recording
 			} // HStack
 		} // VStack

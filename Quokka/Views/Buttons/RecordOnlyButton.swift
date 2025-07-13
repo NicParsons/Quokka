@@ -33,7 +33,7 @@ Label("Record", systemImage: "record.circle")
 			} // Button
 				.accessibilityAddTraits(.startsMediaSession)
 				.foregroundColor(.green)
-				.disabled(model.isRecording)
+				.disabled(model.recordingStatus != .isNotRecording)
 	.alert("Please grant the app access to your microphone",
 		   isPresented: $alertIsPresent) {
 		Button("OK", action: { print("The user dismissed the custom alert asking them to grant access to the microphone.") })

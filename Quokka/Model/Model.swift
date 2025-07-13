@@ -562,14 +562,14 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 				if let recording = post.recording {
 					if !FileManager.default.fileExists(atPath: recording.fileURL.path) {
 						print("The \(post.description) has a recording at the following path which no longer appeares to exist: \(recording.fileURL.path).")
-						delete(post, fromContext: context)
+							delete(post, fromContext: context)
 					} // end if
 				} else {
 					print("The \(post.description) does not have any recording.")
-					delete(post, fromContext: context)
+						delete(post, fromContext: context)
 				} // if let
 			} // end loop
-			try context.save()
+				try context.save()
 		} catch {
 			print("Failed to remove posts whose recordings were missing: \(error)")
 		} // do try catch

@@ -42,7 +42,6 @@ Label("Record", systemImage: "record.circle")
     } // body
 
 	func record() {
-		guard let user = session.user else { return }
 		// this would make more sense as a switch but do I want a switch within a switch?
 		if model.recordingStatus == .isRecording {
 			model.pauseRecording()

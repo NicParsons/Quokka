@@ -31,7 +31,7 @@ struct RecordingProgressView: View {
 							model.audioPlayer?.stop()
 							isListeningBack = false
 						} else if let url = model.audioRecorder?.url {
-							try? model.playRecording(url, context: context)
+							model.playRecording(url, context: context)
 							isListeningBack = true
 						} // end if
 					}) {

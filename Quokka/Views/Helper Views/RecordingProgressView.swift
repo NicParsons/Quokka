@@ -54,7 +54,7 @@ struct RecordingProgressView: View {
 						startTimer()
 					}
 				}) {
-					Label(model.recordingStatus == .isRecording ? "Stop" : "Resume", systemImage: model.recordingStatus == .isRecording ? "pause.circle" : "record.circle")
+					Label(model.recordingStatus == .isRecording ? "Pause Recording" : "Resume", systemImage: model.recordingStatus == .isRecording ? "pause.circle" : "record.circle")
 						.padding()
 						.background(Color.blue.opacity(0.2))
 						.clipShape(RoundedRectangle(cornerRadius: 10))

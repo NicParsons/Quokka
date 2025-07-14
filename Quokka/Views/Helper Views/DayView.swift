@@ -14,13 +14,14 @@ struct DayView: View {
 
 			Spacer()
 
-			HStack {
-			RecordButton()
-				Spacer()
-				ImportButton()
-			} // HStack
+			if model.recordingStatus == .isNotRecording {
+				HStack {
+					RecordButton()
+					Spacer()
+					ImportButton()
+				} // HStack
 
-			if model.recordingStatus != .isNotRecording {
+			} else {
 RecordingProgressView()
 			} // end if
 		} // VStack

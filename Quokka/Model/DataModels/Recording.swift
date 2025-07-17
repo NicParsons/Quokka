@@ -23,8 +23,10 @@ struct Recording: Identifiable, Codable {
 		print("Getting creation date for \(url).")
 		if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as [FileAttributeKey: Any],
 			let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
+			print("The creation date is \(creationDate.formatted()).")
 			return creationDate
 		} else {
+			print("Can't get file attributes.")
 			return Date.now
 		} // end if
 	} // func

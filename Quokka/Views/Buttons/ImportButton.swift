@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct ImportButton: View {
 	@Environment(Model.self) private var model
+	@Environment(\.modelContext) private var context
 	@State private var showImporter = false
 	@State private var alertIsShowing = false
 	@State private var error: Error?
@@ -21,7 +22,7 @@ struct ImportButton: View {
 				case .success(let urls):
 					for url in urls {
 					do {
-					let _ = try model.importRecording(url)
+					let _ = try model.importRecording(url, toContext: context)
 					} catch {
 						self.error = error
 alertIsShowing = true

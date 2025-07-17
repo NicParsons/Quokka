@@ -453,6 +453,7 @@ delete(post, fromContext: context)
 		} // func
 
 	func importRecording(_ url: URL, forAuthor author: User? = nil, toContext context: ModelContext? = nil) throws -> Post? {
+		print("Importing \(url).")
 		let fileName = url.lastPathComponent
 		let date = Recording.creationDate(for: url)
 		let destinationURL = recordingsDirectory().appendingPathComponent(fileName, isDirectory: false)
@@ -466,8 +467,10 @@ delete(post, fromContext: context)
 			throw error
 		}
 		if let context = context {
+			print("About to try save the newly imported recording.")
 			return save(url, forAuthor: author, onDate: date, inContext: context)
 		} else {
+			print("Can't save the newly imported recording as there is no ModelContext.")
 			return nil
 		}
 	} // func

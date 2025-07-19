@@ -110,30 +110,3 @@ return 0
 		) // Binding
 	} // computed property
 } // extension
-
-struct PlaybackRateControl: View {
-	@Environment(Model.self) private var model
-	var minValue: Float = 0.5
-	var maxValue: Float = 3.0
-	var stepValue: Float = 0.1
-
-	var body: some View {
-		Slider(value: playbackRate, in: minValue...maxValue, step: stepValue)
-			.accessibilityLabel("Playback speed")
-			.accessibilityValue("\(playbackRate) times")
-			.frame(minWidth: sliderLength, maxWidth: sliderLength * 10)
-	} // body
-} // view
-
-extension PlaybackRateControl {
-	var playbackRate: Binding<Float> {
-		Binding<Float>(
-			get: { model.playbackRate },
-			set: { newValue in model.playbackRate = newValue }
-		)
-	}
-
-	var sliderLength: CGFloat {
-CGFloat((maxValue - minValue) / stepValue)
-	} // sliderLength
-} // extension

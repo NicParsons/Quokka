@@ -2,7 +2,7 @@
 
 ## Bugs
 
-* trying to add playback rate control to NowPlayingView
+* import recordings not working
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
 * playback position not saving
@@ -16,8 +16,8 @@
 ## Features
 
 * conversation/thread view, might require adding recipients property to Post
+* instead of custom NowPlayingView, use AVPlayerView on macOS and AVPlayerViewControler on iOS
 * playback should integrate with system's now playing API
-* playback speed control for NowPlayingView
 * Add Download button to File menu
 * add OBFoundation as a dependancy (it wil need to be published first) and then update print statements to use OBFoundation's logging system
 * increment listen count of Post after recording finishes playback

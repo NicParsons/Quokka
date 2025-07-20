@@ -3,7 +3,8 @@ import SwiftData
 
 @Model
 final class User: Identifiable {
-var name: String = ""
+	// @Attribute(.unique) 
+	var name: String = ""
 	@Relationship(deleteRule: .cascade)
 	var posts: [Post]? = []
 

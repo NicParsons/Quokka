@@ -20,7 +20,15 @@ struct HomeScreen: View {
 JournalView(selectedPost: $selectedPost)
 				}
 
+				Tab("Unassigned Posts", systemImage: "person.slash", value: "no-authors") {
+AuthorlessPosts()
+				}
+
 				#if DEBUG
+				Tab("Manage Users", systemImage: "person.circle", value: "users") {
+ManageUsersView()
+				}
+
 				Tab("Test ShareLink", systemImage: "square.and.arrow.up", value: "test") {
 TestShareView()
 				}

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PlaybackControlsMenu: Commands {
-	@State private var model = Model()
+	let model: Model
 	@FocusedValue(\.post) private var selectedPost: Post??
 	var session: SessionManager
 

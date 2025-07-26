@@ -41,8 +41,8 @@ if model.isPlaying {
         } // window group
         .modelContainer(sharedModelContainer)
 		.commands {
-			FileMenu()
-			PlaybackControlsMenu(session: session)
+			FileMenu(model: model)
+			PlaybackControlsMenu(model: model, session: session)
 		} // commands
     } // body
 } // app

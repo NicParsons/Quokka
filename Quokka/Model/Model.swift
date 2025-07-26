@@ -588,6 +588,7 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 
 	override init() {
 		super.init()
+		print("Instantiating a Model instance.")
 iCloudEnabled = isUserLoggedIntoIcloud()
 		print("The user is \(iCloudEnabled ? "" : "not") signed into icloud.")
 		setDocumentsDirectory()

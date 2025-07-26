@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FileMenu: Commands {
-@State private var model = Model()
+	let model: Model
 	@FocusedValue(\.post) private var selectedPost: Post??
 	var body: some Commands {
 		CommandGroup(after: .newItem) {

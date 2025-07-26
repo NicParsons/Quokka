@@ -11,6 +11,7 @@ final class Post {
 	var author: User?
 @Relationship
 	var recording: Recording?
+	var recordingFilePath: String = ""
 	var listens = 0
 
 	var authorNameString: String {
@@ -22,6 +23,7 @@ final class Post {
 		self.creationDate = creationDate
 		self.author = author
 		self.recording = recording
+		self.recordingFilePath = recording.filePath
 		self.listens = listens
 	}
 }
@@ -106,6 +108,12 @@ extension Post {
 		#Predicate<Post> { post in
 			post.recording != nil &&
 			post.recording!.fileURL == url
+		} // predicate
+	} // func
+
+	static func predicate(byFilePath path: String) -> Predicate<Post> {
+		#Predicate<Post> { post in
+			post.recordingFilePath == path
 		} // predicate
 	} // func
 } // Post extension

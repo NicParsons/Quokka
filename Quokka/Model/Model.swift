@@ -239,7 +239,7 @@ print("About to resume playback.")
 			return
 		}
 
-		if let post = getPost(withURL: url, fromContext: context), let _ = post.recording {
+		if let post = getPost(withRecordingPath: url.path(percentEncoded: false), fromContext: context), let _ = post.recording {
 			// safe to unwrap post.recording
 			post.recording!.updatePlaybackPosition(to: player.currentTime)
 			do {
@@ -248,6 +248,8 @@ print("About to resume playback.")
 			} catch {
 				print("Failed to save context after updating playback position: \(error)")
 			} // do try ccatch
+		} else {
+print("Unable to update the playback position.")
 		} // end if
 	} // func
 
@@ -524,18 +526,32 @@ print("Fetching all posts.")
 		return try context.fetch(descriptor)
 	}
 
-	func getPost(withURL url: URL, fromContext context: ModelContext) -> Post? {
-print("Fetching the post with recording url \(url).")
-		let predicate = Post.predicate(byURL: url)
+	func getPost(withRecordingPath filePath: String, fromContext context: ModelContext) -> Post? {
+print("Fetching the post with recording file path \(filePath).")
+		let predicate = Post.predicate(byFilePath: filePath)
 		var descriptor = FetchDescriptor(predicate: predicate)
 			descriptor.fetchLimit = 1
 		do {
+			print("Thread is main thread: \(Thread.isMainThread).")
 			return try context.fetch(descriptor).first
 		} catch {
 			print("Unable to fetch the specified post: \(error.localizedDescription)")
 			return nil
 		} // do try catch
 	} // func
+
+	func logRecordingFilePathOfAllPosts(context: ModelContext) {
+		do {
+			let allPosts = try fetchAllPosts(fromContext: context)
+			print("📦 Stored file paths:")
+			for post in allPosts {
+				print("– \(post.recordingFilePath)")
+				post.recordingFilePath = post.recording?.filePath ?? ""
+			} // for loop
+		} catch {
+			print("Could not fetch all posts to inspect file paths: \(error)")
+		}
+	}
 
 	func checkForNewlyAddedRecordings(context: ModelContext, defaultUser author: User) {
 print("Checking for recordings newly added to the recordings directory.")

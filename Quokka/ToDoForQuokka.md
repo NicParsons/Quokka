@@ -5,7 +5,6 @@
 * import recordings not working – maybe file permissions, maybe because of relationship between Post and Recording, and perhaps Recording needs to be a Model rather than being saved as bytes in the recording field of Post, and also ideally need to allow Post to be assigned an author on import
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
-* playback position not saving: console reports: Unable to fetch the specified post: The operation couldn’t be completed. (SwiftData.SwiftDataError error 1.)
 * keyboard shortcut for share button in file menu not working
 * using ModelContext in background thread: 	•	This warning means your ModelContext was created on the main thread, but you’re using it on a background thread (perhaps during background tasks like cleaning up posts).
 	•	This can cause race conditions or crashes in the future.

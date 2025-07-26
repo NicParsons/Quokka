@@ -73,10 +73,10 @@ return
 		stopPlaying(context)
 
 		print("Preparing to start recording.")
-		let filePath = newFileURL()
+		let fileURL = newFileURL()
 
 		do {
-audioRecorder = try AVAudioRecorder(url: filePath, settings: recordingSettings)
+audioRecorder = try AVAudioRecorder(url: fileURL, settings: recordingSettings)
 			// play system sound before recording starts so that sound not captured by recording
 			AudioServicesPlaySystemSound(1113) // begin_record.caf
 			// alternative for mac was: playSystemSound(named: "Funk", ofType: .aiff)
@@ -376,9 +376,9 @@ return nil
 		let dateStamp = dateTimeStamp.components(separatedBy: .whitespaces)[0]
 		let timeStamp = dateTimeStamp.components(separatedBy: .whitespaces)[1]
 		let documentPath = recordingsDirectory()
-		let filePath = documentPath.appendingPathComponent("\(dateStamp) \(fileName) at \(timeStamp)\(fileExtension)")
-		print("The file URL is \(filePath).")
-		return filePath
+		let fileURL = documentPath.appendingPathComponent("\(dateStamp) \(fileName) at \(timeStamp)\(fileExtension)")
+		print("The file URL is \(fileURL).")
+		return fileURL
 	}
 
 	func setDocumentsDirectory() {
@@ -443,7 +443,7 @@ delete(post, fromContext: context)
 
 		func deleteRecording(_ url: URL?) {
 			guard let url = url else { return }
-			print("About to delete the recording at \(url.path()).")
+			print("About to delete the recording at \(url.path(percentEncoded: false)).")
 		do {
 			try FileManager.default.trashItem(at: url, resultingItemURL: nil)
 			print("File deleted.")
@@ -504,8 +504,7 @@ return getICloudToken() != nil
 	// Save new recording and post
 	func save(_ url: URL, forAuthor author: User? = nil, onDate date: Date = Date.now, inContext context: ModelContext) -> Post {
 		print("Saving \(url).")
-		// let date = Recording.creationDate(for: url)
-		let recording = Recording(fileURL: url, date: date)
+		let recording = Recording(filePath: url.path(percentEncoded: false), date: date)
 		let post = Post(date: date, author: author, recording: recording)
 		context.insert(post)
 		do {
@@ -572,8 +571,8 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
 				if let recording = post.recording {
-					if !FileManager.default.fileExists(atPath: recording.fileURL.path) {
-						print("The \(post.description) has a recording at the following path which no longer appeares to exist: \(recording.fileURL.path).")
+					if !FileManager.default.fileExists(atPath: recording.filePath) {
+						print("The \(post.description) has a recording at the following path which no longer appeares to exist: \(recording.filePath).")
 							delete(post, fromContext: context)
 					} // end if
 				} else {

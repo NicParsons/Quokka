@@ -2,7 +2,7 @@
 
 ## Bugs
 
-* import recordings not working
+* import recordings not working – maybe file permissions, maybe because of relationship between Post and Recording, and perhaps Recording needs to be a Model rather than being saved as bytes in the recording field of Post, and also ideally need to allow Post to be assigned an author on import
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
 * playback position not saving
@@ -15,6 +15,7 @@
 
 ## Features
 
+* wrap it up reminder
 * conversation/thread view, might require adding recipients property to Post
 * instead of custom NowPlayingView, use AVPlayerView on macOS and AVPlayerViewControler on iOS
 * playback should integrate with system's now playing API

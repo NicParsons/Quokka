@@ -1,17 +1,23 @@
 import AVFoundation
 import CoreTransferable
 import Foundation
+import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct Recording: Identifiable, Codable {
-	let id: UUID
-		var fileURL: URL
+@Model
+final class Recording: Identifiable {
+	@Relationship(inverse: \Post.recording)
+var post: Post?
+	var filePath: String = ""
+	var fileURL: URL {
+		URL(filePath: filePath, directoryHint: .notDirectory)
+	}
 	var duration: TimeInterval = 0
 	var date = Date.now
 
 		var creationDate: Date {
-				if let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path) as [FileAttributeKey: Any],
+				if let attributes = try? FileManager.default.attributesOfItem(atPath: filePath) as [FileAttributeKey: Any],
 					let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
 					return creationDate
 				} else {
@@ -21,7 +27,7 @@ struct Recording: Identifiable, Codable {
 
 	static func creationDate(for url: URL) -> Date {
 		print("Getting creation date for \(url).")
-		if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as [FileAttributeKey: Any],
+		if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)) as [FileAttributeKey: Any],
 			let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
 			print("The creation date is \(creationDate.formatted()).")
 			return creationDate
@@ -33,7 +39,7 @@ struct Recording: Identifiable, Codable {
 
 		var playbackPosition: TimeInterval = 0
 
-		mutating func updatePlaybackPosition(to time: TimeInterval) {
+		func updatePlaybackPosition(to time: TimeInterval) {
 	playbackPosition = time
 			print("Updated playback position to \(time).")
 		}
@@ -67,7 +73,7 @@ struct Recording: Identifiable, Codable {
 			return seconds
 		} // func
 
-	mutating func updateDuration() async {
+	func updateDuration() async {
 duration = await updatedDuration()
 	}
 
@@ -145,9 +151,9 @@ duration = await updatedDuration()
 	case downloaded, downloading, remote, error, unknown
 		}
 
-	init(id: UUID = UUID(), fileURL: URL, date: Date = Date.now, duration: TimeInterval = 0, playbackPosition: TimeInterval = 0) {
-		self.id = id
-		self.fileURL = fileURL
+	init(filePath: String = "", date: Date = Date.now, duration: TimeInterval = 0, playbackPosition: TimeInterval = 0) {
+		// self.id = id
+		self.filePath = filePath
 		self.duration = duration
 		self.date = date
 		self.playbackPosition = playbackPosition
@@ -160,7 +166,7 @@ duration = await updatedDuration()
 				SentTransferredFile(recording.fileURL)
 			} importing: { received in
 				let _ = try Model().importRecording(received.file.absoluteURL)
-				return Self.init(fileURL: received.file.absoluteURL)
+				return Self.init(filePath: received.file.path(percentEncoded: false))
 			} // FileRepresentation
 			ProxyRepresentation { recording in
 				recording.fileURL
@@ -184,6 +190,6 @@ extension Recording {
 
 extension Recording: Equatable {
 	static func == (lhs: Recording, rhs: Recording) -> Bool {
-		return lhs.fileURL == rhs.fileURL
+		return lhs.filePath == rhs.filePath
 	}
 }

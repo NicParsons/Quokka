@@ -9,6 +9,7 @@ final class Post {
 	var creationDate = Date.now
 	@Relationship(inverse: \User.posts)
 	var author: User?
+@Relationship
 	var recording: Recording?
 	var listens = 0
 

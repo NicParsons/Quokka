@@ -439,8 +439,12 @@ return nil
 		}
 
 		// Check duration using AVAsset
-		let asset1 = AVAsset(url: url1)
-		let asset2 = AVAsset(url: url2)
+		let asset1 = AVURLAsset(url: url1) // AVAsset(url: url1)
+		let asset2 = AVURLAsset(url: url2) // AVAsset(url: url2)
+		// AVURLAsset.duration was depricated in macOS 15
+		// should use AVURLAsset.load(.duration) instead
+		// but it seems like it is an async method that throws, so it won't compile without more significant changes
+		//TODO: Update depricated .duration property to use .load(.duration) instead
 		let duration1 = CMTimeGetSeconds(asset1.duration)
 		let duration2 = CMTimeGetSeconds(asset2.duration)
 
@@ -519,8 +523,7 @@ delete(post, fromContext: context)
 		} // func
 
 	func importRecording(_ url: URL, forAuthor author: User? = nil, toContext context: ModelContext? = nil) throws -> Post? {
-		print("Importing \(url).")
-		let fileName = url.lastPathComponent
+		print("Importing \(url.path(percentEncoded: false)).")
 		let date = Recording.creationDate(for: url)
 		let destinationURL = newFileURL(forDate: date, authorName: author?.name)
 		let fileManager = FileManager.default
@@ -529,7 +532,7 @@ delete(post, fromContext: context)
 			try fileManager.copyItem(at: url, to: destinationURL)
 			if didAccess { url.stopAccessingSecurityScopedResource() }
 		} catch {
-			print("Unable to copy the imported item (\(url) to \(destinationURL): \(error.localizedDescription).")
+			print("Unable to copy the imported item (\(url.path(percentEncoded: false)) to \(destinationURL.path(percentEncoded: false)): \(error.localizedDescription).")
 			throw error
 		}
 		if let context = context {

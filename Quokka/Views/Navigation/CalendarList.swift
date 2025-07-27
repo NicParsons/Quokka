@@ -35,8 +35,10 @@ struct CalendarList: View {
 				}) // overlay group
 		.onAppear {
 			if selectedPost == nil {
+				print("No selectedPost in CalendarList View.")
 				if let mostRecentDay = calendarDays.last {
 					selectedPost = mostRecentDay.posts.last
+					print("Programatically selected \(selectedPost?.description ?? "nothing").")
 				} // end if let
 			} // end if
 		} // on appear

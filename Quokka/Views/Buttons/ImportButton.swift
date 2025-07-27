@@ -60,8 +60,8 @@ extension ImportError: CustomStringConvertible {
 		switch self {
 		case let .fileNameClash(fileName):
 return "The app already has a recording with that same name, \(fileName)."
-		case let .recordingAlreadyExists(fileName):
-return "Looks like you already have that recording. At least, you have a file with the same name, same size, same recording duration and same creation date."
+		case let .recordingAlreadyExists(message):
+return "Looks like you already have that recording. At least, you have a file with the same name, same size, same recording duration and same creation date: \(message)"
 		case let .otherError(errorMessage):
 			return "There was an error trying to import that file. The error message was: \(errorMessage)."
 		} // switch

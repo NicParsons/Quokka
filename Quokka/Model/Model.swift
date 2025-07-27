@@ -369,10 +369,11 @@ return nil
 		}
 	} // func
 
-	func newFileURL() -> URL {
-		let fileName = "Quokka post"
+	func newFileURL(forDate date: Date = Date.now, authorName: String? = nil) -> URL {
+		var fileName = "Quokka post"
+		if let authorName = authorName { fileName += " from \(authorName)" }
 		let fileExtension = ".m4a"
-		let iso8601Date = Date().ISO8601Format(.init(dateSeparator: .dash, dateTimeSeparator: .space, timeSeparator: .omitted, timeZoneSeparator: .omitted, includingFractionalSeconds: false, timeZone: .autoupdatingCurrent))
+		let iso8601Date = date.ISO8601Format(.init(dateSeparator: .dash, dateTimeSeparator: .space, timeSeparator: .omitted, timeZoneSeparator: .omitted, includingFractionalSeconds: false, timeZone: .autoupdatingCurrent))
 		let index = iso8601Date.firstIndex(of: "+") ?? iso8601Date.endIndex
 		let dateTimeStamp = iso8601Date[..<index]
 		let dateStamp = dateTimeStamp.components(separatedBy: .whitespaces)[0]
@@ -381,6 +382,69 @@ return nil
 		let fileURL = documentPath.appendingPathComponent("\(dateStamp) \(fileName) at \(timeStamp)\(fileExtension)")
 		print("The file URL is \(fileURL).")
 		return fileURL
+	}
+
+	func recordingFileExists(withFileName fileName: String) -> Bool {
+		let directory = recordingsDirectory()
+		let fileURL = directory.appendingPathComponent(fileName)
+		return FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false))
+	}
+
+	func contentsOfFilesAreEqualStreamed(_ url1: URL, _ url2: URL, chunkSize: Int = 4096) -> Bool {
+		guard FileManager.default.fileExists(atPath: url1.path(percentEncoded: false)),
+			  FileManager.default.fileExists(atPath: url2.path(percentEncoded: false)) else {
+			return false
+		}
+
+		guard let handle1 = try? FileHandle(forReadingFrom: url1),
+			  let handle2 = try? FileHandle(forReadingFrom: url2) else {
+			return false
+		}
+
+		defer {
+			try? handle1.close()
+			try? handle2.close()
+		}
+
+		while true {
+			let data1 = try? handle1.read(upToCount: chunkSize)
+			let data2 = try? handle2.read(upToCount: chunkSize)
+
+			if data1 != data2 {
+				return false
+			}
+
+			// If both are nil or empty, we've reached EOF and they're equal
+			if (data1 == nil || data1?.isEmpty == true) &&
+			   (data2 == nil || data2?.isEmpty == true) {
+				return true
+			}
+		}
+	}
+
+	// Compare two audio file URLs for likely equality based on file attributes and duration.
+	func audioFilesAreLikelyEqual(_ url1: URL, _ url2: URL) -> Bool {
+		let fileManager = FileManager.default
+
+		// Check file attributes
+		guard let attrs1 = try? fileManager.attributesOfItem(atPath: url1.path(percentEncoded: false)),
+			  let attrs2 = try? fileManager.attributesOfItem(atPath: url2.path(percentEncoded: false)),
+			  let size1 = attrs1[.size] as? NSNumber,
+			  let size2 = attrs2[.size] as? NSNumber,
+			  let created1 = attrs1[.creationDate] as? Date,
+			  let created2 = attrs2[.creationDate] as? Date,
+			  size1 == size2,
+			  created1 == created2 else {
+			return false
+		}
+
+		// Check duration using AVAsset
+		let asset1 = AVAsset(url: url1)
+		let asset2 = AVAsset(url: url2)
+		let duration1 = CMTimeGetSeconds(asset1.duration)
+		let duration2 = CMTimeGetSeconds(asset2.duration)
+
+		return duration1 == duration2
 	}
 
 	func setDocumentsDirectory() {
@@ -458,7 +522,7 @@ delete(post, fromContext: context)
 		print("Importing \(url).")
 		let fileName = url.lastPathComponent
 		let date = Recording.creationDate(for: url)
-		let destinationURL = recordingsDirectory().appendingPathComponent(fileName, isDirectory: false)
+		let destinationURL = newFileURL(forDate: date, authorName: author?.name)
 		let fileManager = FileManager.default
 		do {
 			let didAccess = url.startAccessingSecurityScopedResource()
@@ -469,8 +533,8 @@ delete(post, fromContext: context)
 			throw error
 		}
 		if let context = context {
-			print("About to try save the newly imported recording.")
-			return save(url, forAuthor: author, onDate: date, inContext: context)
+			print("About to try save the newly imported recording at \(destinationURL.path(percentEncoded: false)).")
+			return save(destinationURL, forAuthor: author, onDate: date, inContext: context)
 		} else {
 			print("Can't save the newly imported recording as there is no ModelContext.")
 			return nil

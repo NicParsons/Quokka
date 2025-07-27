@@ -2,7 +2,6 @@
 
 ## Bugs
 
-* import recordings not working – maybe file permissions, maybe because of relationship between Post and Recording, and perhaps Recording needs to be a Model rather than being saved as bytes in the recording field of Post, and also ideally need to allow Post to be assigned an author on import
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * selection in Journal View not working
 * keyboard shortcut for share button in file menu not working
@@ -10,9 +9,9 @@
 	•	This can cause race conditions or crashes in the future.
 	•	✅ Fix: Either use a @ModelActor, or dispatch back to the main queue when using ModelContext.
 
-
 ## Features
 
+* assign author to recording when importing
 * wrap it up reminder
 * conversation/thread view, might require adding recipients property to Post
 * instead of custom NowPlayingView, use AVPlayerView on macOS and AVPlayerViewControler on iOS

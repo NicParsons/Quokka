@@ -11,6 +11,8 @@ struct AuthorlessPosts: View {
 			List(posts, selection: $selectedPost) { post in
 				PostCapsuleView(post: post)
 			} // list
+			.padding()
+			.frame(minWidth: 320, idealWidth: 393)
 			.inspector(isPresented: $inspectorIsPresented) {
 				if let post = selectedPost {
 PostView(post: post)

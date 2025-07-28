@@ -7,17 +7,15 @@ struct HomeScreen: View {
 		@Environment(\.modelContext) private var modelContext
 		@Query private var posts: [Post]
 		@SceneStorage("tabSelection") private var tabSelection: String?
-		@State private var selectedPost: Post?
-		@SceneStorage("selectedPostID") private var selectedPostID: Post.ID?
 
 		var body: some View {
 			TabView(selection: $tabSelection) {
 				Tab("Today", systemImage: "record.circle", value: "today") {
-	TodayView(selectedPost: $selectedPost)
+	TodayView()
 				} // today tab
 
 				Tab("Journal", systemImage: "book.circle", value: "journal") {
-JournalView(selectedPost: $selectedPost)
+JournalView()
 				}
 
 				Tab("Unassigned Posts", systemImage: "person.slash", value: "no-authors") {
@@ -36,8 +34,6 @@ TestShareView()
 			} // tab view
 			.tabViewStyle(.sidebarAdaptable)
 
-			.focusedSceneValue(\.post, selectedPost)
-
 				.safeAreaInset(edge: .bottom) {
 					if model.currentlyPlayingRecording != nil {
 					NowPlayingView()
@@ -46,22 +42,13 @@ TestShareView()
 			} // safe area inset
 
 			.onAppear {
-				if let postID = selectedPostID {
-					selectedPost = posts[postID]
-				} // end if
-
 				Task {
 					await model.removeMissingRecordings(inContext: modelContext)
 					// this view is only displayed if session.user exists, but let's unrap safely anyway
 					if let user = session.user { model.checkForNewlyAddedRecordings(context: modelContext, defaultUser: user) }
 				} // end task
 			} // on appear
-
-			.onChange(of: selectedPost) { oldValue, newValue in
-				selectedPostID = newValue?.id
-			} // on change
 			} // body
-
 		} // view
 
 	/* placeholder code
@@ -119,6 +106,4 @@ TestShareView()
 			 }
 		 }
 	 }
-
-
 	 */

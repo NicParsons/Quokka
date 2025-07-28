@@ -2,7 +2,8 @@
 
 ## Bugs
 
-* selection in Journal View not working
+* Selection in Journal View not working. Added print statements and also text at the bottom of the view to display the selectedPost for debug purposes.
+* iOS and macOS seem to have their own separate posts perhaps because the file path to the documents folder is different on each! 😱
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * keyboard shortcut for share button in file menu not working
 * using ModelContext in background thread: 	•	This warning means your ModelContext was created on the main thread, but you’re using it on a background thread (perhaps during background tasks like cleaning up posts). This can cause race conditions or crashes in the future. ✅ Fix: Either use a @ModelActor, or dispatch back to the main queue when using ModelContext.

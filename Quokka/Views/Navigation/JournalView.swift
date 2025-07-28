@@ -5,7 +5,7 @@ struct JournalView: View {
 	@Environment(Model.self) private var model
 	@Environment(\.modelContext) private var context
 	@Environment(SessionManager.self) private var session
-	@Binding var selectedPost: Post?
+	@State var selectedPost: Post? = nil
 	@State private var confirmationDialogIsShown = false
 	@State private var presented: Bool = false
 
@@ -26,5 +26,11 @@ struct JournalView: View {
 			} // ToolbarItem
 #endif
 		} // Toolbar
+
+		.focusedSceneValue(\.post, selectedPost)
+
+		.onAppear {
+			if selectedPost != nil { presented = true }
+		} // on appear
 	} // body
 } // View

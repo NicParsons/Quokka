@@ -7,7 +7,7 @@ struct ShareButton: View {
 		if let recording = post.recording {
 #if os(macOS)
 			ShareLink(
-				item: recording.fileURL,
+				item: model.recordingFileURL(for: recording.fileName),
 				subject: Text(post.description.capitalizingFirstLetter()),
 				message: Text(post.description.capitalizingFirstLetter()),
 				preview: SharePreview(

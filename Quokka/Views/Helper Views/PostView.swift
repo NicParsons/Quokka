@@ -51,7 +51,7 @@ struct PostView: View {
 #endif
 				Task {
 					// safe to unwrap
-					await post.recording!.duration = recording.updatedDuration()
+					await post.recording!.duration = model.updatedDuration(for: recording.fileName)
 				} // Task
 			} // if let
 		} // on appear

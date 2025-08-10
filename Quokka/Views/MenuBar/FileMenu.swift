@@ -9,11 +9,11 @@ struct FileMenu: Commands {
 				.environment(model)
 			#if os(macOS)
 			if let unwrappedPost = selectedPost, let post = unwrappedPost, let recording = post.recording {
-				ExportButton(recordingURL: recording.fileURL)
+				ExportButton(recordingFileName: recording.fileName)
 					.environment(model)
 				.keyboardShortcut("e", modifiers: [.command])
 			} else {
-				ExportButton(recordingURL: nil)
+				ExportButton(recordingFileName: nil)
 					.environment(model)
 			} // if let
 			#endif

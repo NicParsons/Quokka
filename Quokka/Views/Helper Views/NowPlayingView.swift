@@ -87,7 +87,7 @@ await updateDuration()
 	} // func
 
 	private func updateDuration() async {
-		if let _ = model.currentlyPlayingRecording { await model.currentlyPlayingRecording!.duration = model.currentlyPlayingRecording!.updatedDuration() }
+		await model.updateCurrentlyPlayingRecordingDuration()
 	} // func
 } // View
 

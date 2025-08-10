@@ -4,7 +4,7 @@ import SwiftUI
 extension View {
 	@ViewBuilder func addDiaryEntryVOActions(model: Model, context: ModelContext, selectedPost: Post?, confirmationDialogIsShown: Binding<Bool>) -> some View {
 		if let post = selectedPost, let recording = post.recording {
-			let isPlaying = model.isPlaying(recording.fileURL)
+			let isPlaying = model.isPlaying(recording.fileName)
 		self
 .accessibilityAction(named: Text(isPlaying ? "Pause" : "Play")) {
 if isPlaying {

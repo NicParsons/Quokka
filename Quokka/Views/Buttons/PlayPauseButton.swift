@@ -8,9 +8,9 @@ struct PlayPauseButton: View {
     var body: some View {
 		Button(action: {
 			if let recording = recording {
-				if model.isPlaying(recording.fileURL) {
+				if model.isPlaying(recording.fileName) {
 					model.pause(context)
-				} else if model.currentlyPlayingURL == recording.fileURL {
+				} else if model.currentlyPlayingRecording == recording {
 					model.resumePlayback()
 				} else {
 				model.startPlaying(recording, context: context)
@@ -18,7 +18,7 @@ struct PlayPauseButton: View {
 			} // if let
 		}) {
 			if let recording = recording {
-				if model.isPlaying(recording.fileURL) {
+				if model.isPlaying(recording.fileName) {
 Label("Pause", systemImage: "pause.circle")
 						.background(Color.red)
 						.foregroundColor(.white)

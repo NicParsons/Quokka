@@ -63,7 +63,7 @@ DeleteButton(shouldDelete: $confirmationDialogIsShown)
 				Task {
 					if let recording = post.recording {
 						// safe to unwrap
-						post.recording!.duration = await recording.updatedDuration()
+						post.recording!.duration = await model.updatedDuration(for: recording.fileName)
 					} // if let
 				} // task
 		} // on appear
@@ -71,7 +71,7 @@ DeleteButton(shouldDelete: $confirmationDialogIsShown)
 
 	func nowPlaying() -> Bool {
 		guard let recording = post.recording else { return false }
-		return model.isPlaying(recording.fileURL)
+		return model.isPlaying(recording.fileName)
 	}
 
 	func playPause() {

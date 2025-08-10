@@ -11,7 +11,6 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	var audioPlayer: AVAudioPlayer!
 	var recordingStatus: RecordingStatus = .isNotRecording
 	var isPlaying = false
-	//TODO: Need to check and update this programatically.
 	var usesICloud = true
 	var iCloudEnabled = false
 	var documentsDirectory: URL!
@@ -31,9 +30,20 @@ class Model: NSObject, AVAudioPlayerDelegate {
 		} // didSet
 	} // var
 
+	func recordingFileURL(for fileName: String) -> URL {
+let directory = recordingsDirectory()
+		return directory.appendingPathComponent(fileName, conformingTo: .mpeg4Audio)
+	} // func
+
 	func isPlaying(_ url: URL?) -> Bool {
 		guard let url = url else { return false }
 		return isPlaying && url == currentlyPlayingURL
+	}
+
+	func isPlaying(_ fileName: String?) -> Bool {
+		guard let fileName = fileName else { return false }
+		let url = recordingFileURL(for: fileName)
+		return isPlaying(url)
 	}
 
 	func postsSortedByDay(_ posts: [Post]) -> [CalendarDay] {
@@ -133,6 +143,9 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 	} // func
 
 	func playRecording(_ url: URL, context: ModelContext) {
+		// this method is to listen back to recordings in progress
+		// that is, recordings that are in progress of being recorded and have not yet been saved as posts
+		// they should have been saved in the recordings directory already though
 		if isPlaying { stopPlaying(context) }
 		DispatchQueue.main.async {
 			self.currentlyPlayingRecording = nil
@@ -158,8 +171,10 @@ let _ = save(newFileURL, forAuthor: author, inContext: context)
 
 		print("About to play \(recording.shortDescription).")
 
+		let url = recordingFileURL(for: recording.fileName)
+
 		do {
-			audioPlayer = try AVAudioPlayer(contentsOf: recording.fileURL)
+			audioPlayer = try AVAudioPlayer(contentsOf: url)
 			audioPlayer.enableRate = true
 			audioPlayer.rate = playbackRate
 			audioPlayer.delegate = self
@@ -173,7 +188,7 @@ print("Set playback position to \(audioPlayer.currentTime). The track's playback
 			DispatchQueue.main.async {
 				self.isPlaying = true
 			} // main queue
-			print("Started playing \(recording.fileURL).")
+			print("Started playing \(recording.shortDescription).")
 				} catch {
 					print("Playback failed.")
 				}
@@ -239,7 +254,7 @@ print("About to resume playback.")
 			return
 		}
 
-		if let post = getPost(withRecordingPath: url.path(percentEncoded: false), fromContext: context), let _ = post.recording {
+		if let post = getPost(withRecordingFileName: url.lastPathComponent, fromContext: context), let _ = post.recording {
 			// safe to unwrap post.recording
 			post.recording!.updatePlaybackPosition(to: player.currentTime)
 			do {
@@ -327,7 +342,7 @@ print(error)
 			let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
 			if options.contains(.shouldResume) {
 				// An interruption ended. Resume playback.
-// need method to resume playback
+resumePlayback()
 			} else {
 				// An interruption ended. Don't resume playback.
 			}
@@ -378,8 +393,8 @@ return nil
 		let dateTimeStamp = iso8601Date[..<index]
 		let dateStamp = dateTimeStamp.components(separatedBy: .whitespaces)[0]
 		let timeStamp = dateTimeStamp.components(separatedBy: .whitespaces)[1]
-		let documentPath = recordingsDirectory()
-		let fileURL = documentPath.appendingPathComponent("\(dateStamp) \(fileName) at \(timeStamp)\(fileExtension)")
+		let directory = recordingsDirectory()
+		let fileURL = directory.appendingPathComponent("\(dateStamp) \(fileName) at \(timeStamp)\(fileExtension)")
 		print("The file URL is \(fileURL).")
 		return fileURL
 	}
@@ -469,19 +484,19 @@ print("fileManager.url(forUbiquityContainerIdentifier:) returned nil.")
 	} // func
 
 	func recordingsDirectory() -> URL {
-		let subDirectory = documentsDirectory.appendingPathComponent("Audio", isDirectory: true)
+		let directory = documentsDirectory.appendingPathComponent("Audio", isDirectory: true)
 		var isDirectory: ObjCBool = true
 		let fileManager = FileManager.default
-		if !fileManager.fileExists(atPath: subDirectory.path, isDirectory: &isDirectory) {
+		if !fileManager.fileExists(atPath: directory.path, isDirectory: &isDirectory) {
 			do {
-				try fileManager.createDirectory(at: subDirectory, withIntermediateDirectories: true)
+				try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
 			} catch {
-				print("Unable to create Diary Entries directory.")
+				print("Unable to create Quokka recordings directory.")
 print(error)
 				//TODO: Work out what to do if unable to create the subdirectory.
 			} // end do try catch
 		} // end if
-		return subDirectory
+		return directory
 	} // func
 
 	func delete(_ posts: [Post], fromContext context: ModelContext) {
@@ -499,9 +514,9 @@ delete(post, fromContext: context)
 		// and optionally delete the recording from disk
 
 		print("About to delete \(post.description).")
-		if isPlaying(post.recording?.fileURL) { self.stopPlaying(context) }
+		if isPlaying(post.recording?.fileName) { self.stopPlaying(context) }
 
-		if deleteRecordingFile { deleteRecording(post.recording?.fileURL) }
+		if deleteRecordingFile { deleteRecording(post.recordingFileName) }
 		context.delete(post)
 		do {
 			try context.save()
@@ -511,8 +526,8 @@ delete(post, fromContext: context)
 		} // do try ccatch
 	} // func
 
-		func deleteRecording(_ url: URL?) {
-			guard let url = url else { return }
+		func deleteRecording(_ fileName: String) {
+			let url = recordingFileURL(for: fileName)
 			print("About to delete the recording at \(url.path(percentEncoded: false)).")
 		do {
 			try FileManager.default.trashItem(at: url, resultingItemURL: nil)
@@ -544,12 +559,10 @@ delete(post, fromContext: context)
 		}
 	} // func
 
-	func export(_ url: URL, to destination: URL) throws {
-		print("Exporting \(url) to \(destination).")
-		let fileName = url.lastPathComponent
+	func export(_ fileName: String, to destination: URL) throws {
+		print("Exporting \(fileName) to \(destination).")
+		let url = recordingFileURL(for: fileName)
 		let fileManager = FileManager.default
-		// while we work out how to export to the actual destination
-		// let destinationDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
 		let destinationURL = destination.appendingPathComponent(fileName, isDirectory: false)
 		do {
 			let didAccess = url.startAccessingSecurityScopedResource()
@@ -566,14 +579,14 @@ delete(post, fromContext: context)
 		return FileManager.default.ubiquityIdentityToken
 	}
 
-	func isUserLoggedIntoIcloud() -> Bool {
+	func userIsLoggedIntoIcloud() -> Bool {
 return getICloudToken() != nil
 	}
 
 	// Save new recording and post
 	func save(_ url: URL, forAuthor author: User? = nil, onDate date: Date = Date.now, inContext context: ModelContext) -> Post {
-		print("Saving \(url).")
-		let recording = Recording(filePath: url.path(percentEncoded: false), date: date)
+		print("Saving \(url.lastPathComponent).")
+		let recording = Recording(fileName: url.lastPathComponent, date: date)
 		let post = Post(date: date, author: author, recording: recording)
 		context.insert(post)
 		do {
@@ -586,6 +599,120 @@ return getICloudToken() != nil
 		return post
 	}
 
+	func download(_ recording: Recording) throws -> Bool {
+		let fileURL = recordingFileURL(for: recording.fileName)
+		var status = downloadStatus(for: recording)
+		if status != .downloaded && status != .downloading {
+			print("About to download \(recording.description) from \(fileURL.path(percentEncoded: false)).")
+			let fileManager = FileManager.default
+				do {
+			try fileManager.startDownloadingUbiquitousItem(at: fileURL)
+				} catch {
+					print("Error downloading file.: \(error.localizedDescription)")
+					throw error
+				} // do try catch
+			} // end if
+		// update status again
+		status = downloadStatus(for: recording)
+		if status == .downloaded || status == .downloading {
+				print("Started downloading.")
+				return true
+			} else {
+				print("Didn't start downloading.")
+				return false
+			} // end if
+		} // func
+
+	func downloadStatus(for recording: Recording) -> Recording.DownloadStatus {
+		let url = recordingFileURL(for: recording.fileName)
+		do {
+			let result = try url.resourceValues(forKeys: [URLResourceKey.ubiquitousItemDownloadingStatusKey, URLResourceKey.ubiquitousItemIsDownloadingKey, URLResourceKey.ubiquitousItemDownloadRequestedKey])
+			let downloadingStatus = result.ubiquitousItemDownloadingStatus
+			if downloadingStatus == URLUbiquitousItemDownloadingStatus.notDownloaded {
+// it's either downloading or remote
+				if let isDownloading = result.ubiquitousItemIsDownloading, let downloadRequested = result.ubiquitousItemDownloadRequested {
+					if isDownloading || downloadRequested {
+					return .downloading
+				} else {
+					return .remote
+				}
+				} else {
+// couldn't get status
+					return .unknown
+				}
+			} else {
+				// it's downloaded
+				return .downloaded
+			}
+		} catch {
+			print("Unable to get iCloud download status of \(recording.description)")
+			return .error
+		} // do try catch
+	} // func
+
+	func recordingStatusIndicator(for recording: Recording) -> ModifiedContent<Image, AccessibilityAttachmentModifier> {
+		let status = downloadStatus(for: recording)
+		switch status {
+		case .remote:
+			return Image(systemName: "icloud")
+				.accessibilityLabel("Download")
+		case .downloading:
+			return Image(systemName: "icloud.and.arrow.down")
+				.accessibilityLabel("Downloading")
+		case .downloaded:
+			return Image(systemName: "icloud.and.arrow.down.fill")
+				.accessibilityLabel("Downloaded")
+		case .error:
+			return Image(systemName: "exclamationmark.icloud")
+				.accessibilityLabel("Error")
+		case .unknown:
+			return Image(systemName: "questionmark")
+				.accessibilityLabel("Indeterminate")
+		} // switch
+	} // func
+
+	func poastREcordingStatusIndicator(for post: Post) -> ModifiedContent<Image, AccessibilityAttachmentModifier> {
+		if let recording = post.recording {
+			  return recordingStatusIndicator(for: recording)
+		  } else {
+			  return Recording.errorIndicator
+		  }
+	} // func
+
+	func updatedDuration(for fileName: String) async -> TimeInterval {
+		print("Getting updated duration for \(fileName).")
+		let fileURL = recordingFileURL(for: fileName)
+			var seconds: TimeInterval
+			let audioAsset = AVURLAsset(url: fileURL)
+			do {
+				let CMTimeDuration = try await audioAsset.load(.duration)
+				seconds = CMTimeDuration.seconds
+			} catch {
+				print(error)
+				seconds = 0
+			}
+			return seconds
+		} // func
+
+	func updateDuration(of recording: Recording) async {
+		let duration = await updatedDuration(for: recording.fileName)
+		if duration != recording.duration {
+			recording.duration = duration
+			print("Updated duration to \(recording.duration.formattedAsDuration()) for \(recording.description).")
+		} // end if
+	} // func
+
+	func updateCurrentlyPlayingRecordingDuration() async {
+		if let _ = currentlyPlayingRecording {
+// safe to unwrap
+			let duration = await updatedDuration(for: currentlyPlayingRecording!.fileName)
+			if duration != currentlyPlayingRecording!.duration {
+				currentlyPlayingRecording!.duration = duration
+				print("Updated currently playing recording's duration to \(duration.formattedAsDuration()).")
+			} // end if
+		} // if let
+	} // func
+
 	// Fetch all posts
 	func fetchAllPosts(fromContext context: ModelContext) throws -> [Post] {
 print("Fetching all posts.")
@@ -593,9 +720,9 @@ print("Fetching all posts.")
 		return try context.fetch(descriptor)
 	}
 
-	func getPost(withRecordingPath filePath: String, fromContext context: ModelContext) -> Post? {
-print("Fetching the post with recording file path \(filePath).")
-		let predicate = Post.predicate(byFilePath: filePath)
+	func getPost(withRecordingFileName fileName: String, fromContext context: ModelContext) -> Post? {
+print("Fetching the post with recording file name \(fileName).")
+		let predicate = Post.predicate(byFileName: fileName)
 		var descriptor = FetchDescriptor(predicate: predicate)
 			descriptor.fetchLimit = 1
 		do {
@@ -607,13 +734,13 @@ print("Fetching the post with recording file path \(filePath).")
 		} // do try catch
 	} // func
 
-	func logRecordingFilePathOfAllPosts(context: ModelContext) {
+	func logRecordingFileNameOfAllPosts(context: ModelContext) {
 		do {
 			let allPosts = try fetchAllPosts(fromContext: context)
-			print("📦 Stored file paths:")
+			print("📦 Stored file names:")
 			for post in allPosts {
-				print("– \(post.recordingFilePath)")
-				post.recordingFilePath = post.recording?.filePath ?? ""
+				print("– \(post.recordingFileName)")
+				post.recordingFileName = post.recording?.fileName ?? ""
 			} // for loop
 		} catch {
 			print("Could not fetch all posts to inspect file paths: \(error)")
@@ -637,7 +764,7 @@ print("Unable to fetch existing posts to compare with.")
 		do {
 		let directoryContents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
 			for url in directoryContents {
-				if !posts.contains(where: { $0.recording?.fileURL == url }) {
+				if !posts.contains(where: { $0.recording?.fileName == url.lastPathComponent && $0.recordingFileName == url.lastPathComponent }) {
 					let date = Recording.creationDate(for: url)
 let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 				} // end if
@@ -654,8 +781,9 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
 				if let recording = post.recording {
-					if !FileManager.default.fileExists(atPath: recording.filePath) {
-						print("The \(post.description) has a recording at the following path which no longer appeares to exist: \(recording.filePath).")
+					let url = recordingFileURL(for: recording.fileName)
+					if !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
+						print("The \(post.description) has a recording with the following file name which no longer appeares to exist: \(recording.fileName).")
 							delete(post, fromContext: context)
 					} // end if
 				} else {
@@ -672,7 +800,7 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 	override init() {
 		super.init()
 		print("Instantiating a Model instance.")
-iCloudEnabled = isUserLoggedIntoIcloud()
+iCloudEnabled = userIsLoggedIntoIcloud()
 		print("The user is \(iCloudEnabled ? "" : "not") signed into icloud.")
 		setDocumentsDirectory()
 		#if os(iOS)

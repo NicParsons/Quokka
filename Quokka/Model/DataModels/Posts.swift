@@ -11,7 +11,7 @@ final class Post {
 	var author: User?
 @Relationship
 	var recording: Recording?
-	var recordingFilePath: String = ""
+	var recordingFileName: String = ""
 	var listens = 0
 
 	var authorNameString: String {
@@ -23,7 +23,7 @@ final class Post {
 		self.creationDate = creationDate
 		self.author = author
 		self.recording = recording
-		self.recordingFilePath = recording.filePath
+		self.recordingFileName = recording.fileName
 		self.listens = listens
 	}
 }
@@ -36,7 +36,7 @@ extension Array where Element: Post {
 
 extension Post {
 	var description: String {
-		return "diary entry from \(authorNameString) for \(date.formatted(date: .abbreviated, time: .omitted)) at \(date.formatted(date: .omitted, time: .shortened))"
+		return "quokka post from \(authorNameString) for \(date.formatted(date: .abbreviated, time: .omitted)) at \(date.formatted(date: .omitted, time: .shortened))"
 	}
 
 	var shortDescription: String {
@@ -104,16 +104,10 @@ extension Post {
 	} // func
 	*/
 
-	static func predicate(byURL url: URL) -> Predicate<Post> {
+// get the Post with the given fileName
+	static func predicate(byFileName fileName: String) -> Predicate<Post> {
 		#Predicate<Post> { post in
-			post.recording != nil &&
-			post.recording!.fileURL == url
-		} // predicate
-	} // func
-
-	static func predicate(byFilePath path: String) -> Predicate<Post> {
-		#Predicate<Post> { post in
-			post.recordingFilePath == path
+			post.recordingFileName == fileName
 		} // predicate
 	} // func
 } // Post extension
@@ -124,18 +118,7 @@ extension Post: Transferable {
 	static var transferRepresentation: some TransferRepresentation {
 		ProxyRepresentation { post in
 			//TODO: Only allow sharing when post.recording exists, so safe to unwrap.
-			post.recording!.fileURL
+			Model().recordingFileURL(for: post.recordingFileName)
 		}
 	} // TransferRep
 } // extension
-
-
-extension Post {
-	var recordingStatusIndicator: ModifiedContent<Image, AccessibilityAttachmentModifier> {
-		if let recording = recording {
-			return recording.statusIndicator
-		} else {
-			return Recording.errorIndicator
-		}
-	}
-}

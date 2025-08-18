@@ -23,7 +23,7 @@ struct PostCapsuleView: View {
 			} // if let
 			DeleteButton(shouldDelete: $confirmationDialogIsShown)
 			#else
-				post.recordingStatusIndicator
+			model.recordingStatusIndicator(for: post.recording)
 			#endif
 		} // HStack
 

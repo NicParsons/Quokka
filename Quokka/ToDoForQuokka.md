@@ -1,9 +1,12 @@
 #  To Do for Quokka.app
 
+* update Model methods to ensure all posts in recordingsDirectory get a new relative path
+* merge branch into main
+
 ## Bugs
 
+* weird issue with duplicate recordings/posts at start and end of recording time
 * Selection in Journal View not working. Added print statements and also text at the bottom of the view to display the selectedPost for debug purposes.
-* iOS and macOS seem to have their own separate posts perhaps because the file path to the documents folder is different on each! 😱 I'll have to store only the filename and extenssion as a string and then recreate the full url, perhaps in a Model method, on the fly.
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * keyboard shortcut for share button in file menu not working
 * using ModelContext in background thread: 	•	This warning means your ModelContext was created on the main thread, but you’re using it on a background thread (perhaps during background tasks like cleaning up posts). This can cause race conditions or crashes in the future. ✅ Fix: Either use a @ModelActor, or dispatch back to the main queue when using ModelContext.

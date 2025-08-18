@@ -623,34 +623,39 @@ return getICloudToken() != nil
 			} // end if
 		} // func
 
-	func downloadStatus(for recording: Recording) -> Recording.DownloadStatus {
-		let url = recordingFileURL(for: recording.fileName)
-		do {
-			let result = try url.resourceValues(forKeys: [URLResourceKey.ubiquitousItemDownloadingStatusKey, URLResourceKey.ubiquitousItemIsDownloadingKey, URLResourceKey.ubiquitousItemDownloadRequestedKey])
-			let downloadingStatus = result.ubiquitousItemDownloadingStatus
-			if downloadingStatus == URLUbiquitousItemDownloadingStatus.notDownloaded {
-// it's either downloading or remote
-				if let isDownloading = result.ubiquitousItemIsDownloading, let downloadRequested = result.ubiquitousItemDownloadRequested {
-					if isDownloading || downloadRequested {
-					return .downloading
+	func downloadStatus(for recording: Recording?) -> Recording.DownloadStatus {
+		if let recording = recording {
+			let url = recordingFileURL(for: recording.fileName)
+			do {
+				let result = try url.resourceValues(forKeys: [URLResourceKey.ubiquitousItemDownloadingStatusKey, URLResourceKey.ubiquitousItemIsDownloadingKey, URLResourceKey.ubiquitousItemDownloadRequestedKey])
+				let downloadingStatus = result.ubiquitousItemDownloadingStatus
+				if downloadingStatus == URLUbiquitousItemDownloadingStatus.notDownloaded {
+					// it's either downloading or remote
+					if let isDownloading = result.ubiquitousItemIsDownloading, let downloadRequested = result.ubiquitousItemDownloadRequested {
+						if isDownloading || downloadRequested {
+							return .downloading
+						} else {
+							return .remote
+						}
+					} else {
+						// couldn't get status
+						return .unknown
+					}
 				} else {
-					return .remote
+					// it's downloaded
+					return .downloaded
 				}
-				} else {
-// couldn't get status
-					return .unknown
-				}
-			} else {
-				// it's downloaded
-				return .downloaded
-			}
-		} catch {
-			print("Unable to get iCloud download status of \(recording.description)")
+			} catch {
+				print("Unable to get iCloud download status of \(recording.description)")
+				return .error
+			} // do try catch
+		} else {
+			// recording == nil
 			return .error
-		} // do try catch
+		} // if let
 	} // func
 
-	func recordingStatusIndicator(for recording: Recording) -> ModifiedContent<Image, AccessibilityAttachmentModifier> {
+	func recordingStatusIndicator(for recording: Recording?) -> ModifiedContent<Image, AccessibilityAttachmentModifier> {
 		let status = downloadStatus(for: recording)
 		switch status {
 		case .remote:
@@ -781,14 +786,20 @@ let _ = save(url, forAuthor: author, onDate: date, inContext: context)
 			let posts = try fetchAllPosts(fromContext: context)
 			for post in posts {
 				if let recording = post.recording {
-					let url = recordingFileURL(for: recording.fileName)
-					if !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
-						print("The \(post.description) has a recording with the following file name which no longer appeares to exist: \(recording.fileName).")
+					if post.recordingFileName.isEmpty || recording.fileName.isEmpty {
+						print("There is no recording file name for \(post.description).")
+						delete(post, fromContext: context, deleteRecordingFile: false)
+					} else {
+						// it has a file name
+						let url = recordingFileURL(for: recording.fileName)
+						if !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
+							print("The \(post.description) has a recording with the following file name which no longer appeares to exist: \(recording.fileName).")
 							delete(post, fromContext: context)
+						} // end if
 					} // end if
 				} else {
 					print("The \(post.description) does not have any recording.")
-						delete(post, fromContext: context)
+						delete(post, fromContext: context, deleteRecordingFile: false)
 				} // if let
 			} // end loop
 				try context.save()

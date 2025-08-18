@@ -57,7 +57,7 @@ struct PostView: View {
 		} // on appear
 		#if os(iOS)
 		.onDisappear {
-			if model.isPlaying(post.recording?.fileURL) { model.pause(context) }
+			if model.isPlaying(post.recording?.fileName) { model.pause(context) }
 		} // on disappear
 		#endif
 	} // body

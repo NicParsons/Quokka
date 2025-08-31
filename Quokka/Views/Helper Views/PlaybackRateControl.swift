@@ -7,7 +7,7 @@ struct PlaybackRateControl: View {
 	var stepValue: Float = 0.1
 
 	var body: some View {
-		Slider(value: playbackRate, in: minValue...maxValue, step: stepValue)
+		Stepper("Playback Speed", value: playbackRate, in: minValue...maxValue, step: stepValue)
 			.accessibilityLabel("Playback speed")
 		// using playbackRate in the accessibility value has unintended consequences
 		// VoiceOver reads out the code for the Binding definition etc

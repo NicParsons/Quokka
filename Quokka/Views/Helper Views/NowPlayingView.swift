@@ -52,12 +52,16 @@ struct NowPlayingView: View {
 				} // button
 				.accessibilityLabel("Go forward 15 seconds")
 			} // H Stack for playback controls
+			.padding()
 
 			PlaybackRateControl()
 		} // V Stack
 		.padding()
+		.background(.thickMaterial)
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 		.frame(maxWidth: 500)
 		.frame(minHeight: 150, maxHeight: 250)
+
 		.onAppear {
 			Task {
 					startTimer()

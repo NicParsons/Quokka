@@ -74,9 +74,13 @@ struct RecordingProgressView: View {
 				} else {
 					Spacer()
 				} // end if is recording
-			} // HStack
+			} // HStack for buttons
+			.padding()
+
 		} // VStack
 		.padding()
+		.background(.thickMaterial)
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	} // body
 
 	private func startTimer() {

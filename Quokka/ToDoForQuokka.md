@@ -1,10 +1,9 @@
 #  To Do for Quokka.app
 
-* merge branch into main
-
 ## Bugs
 
-* weird issue with duplicate recordings/posts at start and end of recording time
+* legibility of controls in recording progress view – no backgorund, and controls on top of each other
+* consider stepper instead of slider for playback speed control
 * Selection in Journal View not working. Added print statements and also text at the bottom of the view to display the selectedPost for debug purposes.
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * keyboard shortcut for share button in file menu not working

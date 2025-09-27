@@ -12,10 +12,13 @@ struct PostView: View {
 					.accessibilityHeading(.h1)
 
 				UserPicker(selectedUser: $post.author, title: "Author", pickerStyle: .menu)
+
 				DatePicker("Date",
 						   selection: $post.date,
 						   displayedComponents: [.date, .hourAndMinute])
 				.datePickerStyle(.compact)
+
+				PlayPauseButton(recording: post.recording)
 			} // VStack
 			.padding()
 			.frame(maxWidth: .infinity, maxHeight: .infinity)

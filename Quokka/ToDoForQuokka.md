@@ -2,8 +2,9 @@
 
 ## Bugs
 
-* NowPlaying View ignores safe area and overlaps TabView tabs at the bottom of the screen
-* Selection in Journal View not working. Added print statements and also text at the bottom of the view to display the selectedPost for debug purposes.
+* on iOS, NowPlaying View ignores safe area and overlaps TabView tabs at the bottom of the screen
+* on macOS, selection persistance not working
+* on macOS, play/pause using return as keyboard shortcut not working in Convesation view (but working in Journal view)
 * need sound for saving recording: 1009, 1330, 1352, 1109
 * keyboard shortcut for share button in file menu not working
 * focus issues when a post is selected in today view

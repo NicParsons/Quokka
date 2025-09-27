@@ -9,19 +9,22 @@ struct ManageUsersView: View {
 	@State private var currentError: Error?
 
     var body: some View {
-		List(users) { user in
-			UserEditView(user: user, title: "Edit \(user.name)")
-				.onChange(of: user.name) { oldName, newName in
-					print("Changed \(oldName) to \(newName).")
-					do {
-						try context.save()
-						print("Changes saved.")
-					} catch {
-						currentError = error
-						showAlert = true
-					} // do try catch
-				} // on change
-		} // list
+		NavigationView {
+			List(users) { user in
+					UserEditView(user: user, title: "Edit \(user.name)")
+						.onChange(of: user.name) { oldName, newName in
+							print("Changed \(oldName) to \(newName).")
+							do {
+								try context.save()
+								print("Changes saved.")
+							} catch {
+								currentError = error
+								showAlert = true
+							} // do try catch
+						} // on change
+			} // list
+		} // nav stack
+		.navigationTitle("Manage Users")
 		.alert("Error Saving Changes", isPresented: $showAlert) {
 			Button("Whatever") {
 				currentError = nil

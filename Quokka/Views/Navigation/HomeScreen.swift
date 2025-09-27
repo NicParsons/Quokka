@@ -18,6 +18,10 @@ struct HomeScreen: View {
 JournalView()
 				}
 
+				Tab("Conversations", systemImage: "person.circle", value: "conversations") {
+					ConversationList()
+				}
+
 				Tab("Unassigned Posts", systemImage: "person.slash", value: "no-authors") {
 AuthorlessPosts()
 				}

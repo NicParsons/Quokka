@@ -6,7 +6,7 @@ struct ConversationList: View {
 	@Environment(\.modelContext) private var context
 	@Environment(SessionManager.self) private var session
 	@State private var selectedUserID: User.ID? = nil
-	@State var selectedPost: Post? = nil
+	@State var selectedPostID: Post.ID? = nil
 	@Query private var users: [User]
 
 	var body: some View {
@@ -17,17 +17,22 @@ struct ConversationList: View {
 				} // list
 				.listStyle(.sidebar)
 
-				CalendarList(author: selectedUser, selectedPost: $selectedPost)
+				CalendarList(author: selectedUser, selectedPostID: $selectedPostID)
 			} // HStack
 			.padding()
 		} // nav view
-		.navigationTitle("Conversation with \(selectedUser?.name ?? "?")")
+		.navigationTitle(navigationTitle)
 	} // body
 } // view
-
 
 extension ConversationList {
 	var selectedUser: User? {
 		users.first(where: { $0.id == selectedUserID } )
+	}
+
+	var navigationTitle: String {
+var string = "Conversation"
+		if let user = selectedUser { string += " with \(user.name)" }
+			return string
 	}
 } // extension

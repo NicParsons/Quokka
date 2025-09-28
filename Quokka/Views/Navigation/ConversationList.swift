@@ -22,6 +22,16 @@ struct ConversationList: View {
 			.padding()
 		} // nav view
 		.navigationTitle(navigationTitle)
+
+		#if debug
+		.onChange(of: selectedUserID) {
+			print("Sidebar selection changed to \(selectedUser?.name ?? "nil").")
+		}
+
+		.onAppear {
+			print("\(selectedUser?.name) is selected in the conversation list sidebar with ID \(selectedUserID).")
+		}
+		#endif
 	} // body
 } // view
 

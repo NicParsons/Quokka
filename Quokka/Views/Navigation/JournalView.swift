@@ -14,6 +14,7 @@ struct JournalView: View {
 	var body: some View {
 		NavigationView {
 			CalendarList(author: session.user, selectedPostID: $selectedPostID)
+				.frame(minWidth: 250)
 				.inspector(isPresented: $presented) {
 					if let post = selectedPost {
 						PostView(post: post)
@@ -34,6 +35,7 @@ struct JournalView: View {
 		.onAppear {
 			if let postID = selectedPostID {
 				selectedPost = posts[postID]
+				presented = true
 			} // end if
 
 			if selectedPost != nil { presented = true }
@@ -42,8 +44,10 @@ struct JournalView: View {
 		.onChange(of: selectedPostID) { oldValue, newValue in
 			if let postID = newValue {
 				selectedPost = posts[postID]
+				presented = true
 			} else {
 selectedPost = nil
+				presented = false
 			}
 		} // on change
 	} // body

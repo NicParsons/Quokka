@@ -5,7 +5,7 @@ struct ConversationList: View {
 	@Environment(Model.self) private var model
 	@Environment(\.modelContext) private var context
 	@Environment(SessionManager.self) private var session
-	@State private var selectedUserID: User.ID? = nil
+	@SceneStorage("selectedConversation") private var selectedUserID: User.ID?
 	@State var selectedPostID: Post.ID? = nil
 	@Query private var users: [User]
 
@@ -31,8 +31,10 @@ extension ConversationList {
 	}
 
 	var navigationTitle: String {
-var string = "Conversation"
-		if let user = selectedUser { string += " with \(user.name)" }
-			return string
-	}
+		if let user = selectedUser {
+			return "Conversation with \(user.name)"
+		} else {
+			return "Conversations"
+		} // if let
+	} // var
 } // extension

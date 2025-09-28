@@ -8,6 +8,7 @@ struct PostList: View {
 	let date: Date
 	@Binding var selectedPost: Post?
 	@State private var confirmationDialogIsShown = false
+	@State private var presented: Bool = true
 
 	var body: some View {
 		List(posts, id: \.self, selection: $selectedPost) { post in
@@ -23,6 +24,13 @@ PostCapsuleView(post: post)
 
 		.enableDeletingWithKeyboard(of: selectedPost, confirmationDialogIsShown: $confirmationDialogIsShown)
 		.confirmDeletion(ofSelected: $selectedPost, if: $confirmationDialogIsShown)
+
+		.inspector(isPresented: $presented) {
+			if let post = selectedPost {
+				PostView(post: post)
+			} // if let
+		} // inspect
+
 		.overlay(Group {
 			if posts.isEmpty {
 				Text("You haven't recorded a diary entry for \(date.stringWithRelativeFormatting().lowercased()) yet. Hit the “Record” button to get started.")

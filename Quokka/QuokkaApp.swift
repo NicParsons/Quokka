@@ -29,11 +29,10 @@ struct QuokkaApp: App {
 if model.isPlaying {
 	model.pause(sharedModelContainer.mainContext)
 } else if model.recordingStatus == .isRecording {
-	model.stopRecording(forAuthor: session.user, context: sharedModelContainer.mainContext)
+	model.pauseRecording()
+} else if model.recordingStatus == .isPaused {
+		model.resumeRecording(context: sharedModelContainer.mainContext)
 } else {
-	/* we can do this once we add property to model to detect whether playback is paused
-	model.resumePlayback()
-	 */
 	model.startRecording(context: sharedModelContainer.mainContext)
 } // end if
 } // magic tap action

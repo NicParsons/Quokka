@@ -1,11 +1,15 @@
 import SwiftUI
+import AVFoundation
+import AudioToolbox
 
 struct RecordingProgressView: View {
 	@Environment(Model.self) private var model
 	@Environment(\.modelContext) private var context
 	@Environment(SessionManager.self) private var session
 	@State private var timer: Timer?
+	@State private var inputLevelTimer: Timer?
 	@State private var elapsedTime: TimeInterval = 0
+	@State private var silenceDuration: TimeInterval = 0
 	@State private var isListeningBack = false
 
 	var body: some View {
@@ -90,10 +94,44 @@ struct RecordingProgressView: View {
 				elapsedTime = current
 			}
 		}
+		monitorInputLevel()
 	} // func
 
 	private func stopTimer() {
 		timer?.invalidate()
 		timer = nil
+		stopInputLevelMonitor()
+	} // func
+
+	private func monitorInputLevel() {
+		silenceDuration = 0
+		inputLevelTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+			guard let recorder = model.audioRecorder else { return }
+			recorder.updateMeters()
+			let averagePower = recorder.averagePower(forChannel: 0)
+			let silenceThreshold: Float = -40.0
+
+			if averagePower < silenceThreshold {
+				silenceDuration += 0.5
+				if silenceDuration >= 3.0 {
+					playAlertSound()
+					silenceDuration = 0
+				}
+			} else {
+				silenceDuration = 0
+			}
+		}
+	} // func
+
+	private func stopInputLevelMonitor() {
+		inputLevelTimer?.invalidate()
+		inputLevelTimer = nil
+		silenceDuration = 0
+	} // func
+
+	private func playAlertSound() {
+		// Play a system sound alert
+		AudioServicesPlaySystemSound(SystemSoundID(1322)) // 'MailSent' sound
+		// If AudioToolbox is not available, you could use other ways to alert the user
 	} // func
 } // view

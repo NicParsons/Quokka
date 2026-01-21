@@ -12,13 +12,14 @@
 
 ## Features
 
+* conversation/thread view, might require adding recipients property to Post
 * rename file name when assigning author
 * assign author to recording when importing
 * wrap it up reminder
-* conversation/thread view, might require adding recipients property to Post
 * instead of custom NowPlayingView, use AVPlayerView on macOS and AVPlayerViewControler on iOS
 * playback should integrate with system's now playing API
 * Add Download button to File menu
 * add OBFoundation as a dependancy (it wil need to be published first) and then update print statements to use OBFoundation's logging system
 * increment listen count of Post after recording finishes playback
 * visually distinguish PostCapsule views depending on whether listenCount is > or = 0
+* look at integrating todos from AudioDiary

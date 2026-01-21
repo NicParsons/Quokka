@@ -8,6 +8,9 @@ final class User: Identifiable {
 	@Relationship(deleteRule: .cascade)
 	var posts: [Post]? = []
 
+	@Relationship(deleteRule: .cascade)
+	var receivedPosts: [Post] = []
+
 	init(name: String, posts: [Post] = [Post]()) {
 		self.name = name
 		self.posts = posts

@@ -7,8 +7,13 @@ import SwiftUI
 final class Post {
 	var date = Date.now
 	var creationDate = Date.now
+
 	@Relationship(inverse: \User.posts)
 	var author: User?
+
+	@Relationship(inverse: \User.receivedPosts)
+	var recipients: [User]
+
 @Relationship
 	var recording: Recording?
 	var recordingFileName: String = ""
@@ -18,10 +23,11 @@ final class Post {
 		author?.name ?? "unknown"
 }
 
-	init(date: Date = Date.now, creationDate: Date = Date.now, author: User? = nil, recording: Recording, listens: Int = 0) {
+	init(date: Date = Date.now, creationDate: Date = Date.now, author: User? = nil, recipients: [User] = [], recording: Recording, listens: Int = 0) {
 		self.date = date
 		self.creationDate = creationDate
 		self.author = author
+		self.recipients = recipients
 		self.recording = recording
 		self.recordingFileName = recording.fileName
 		self.listens = listens

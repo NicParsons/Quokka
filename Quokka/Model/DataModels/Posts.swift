@@ -12,7 +12,7 @@ final class Post {
 	var author: User?
 
 	@Relationship(inverse: \User.receivedPosts)
-	var recipients: [User]
+	var recipients: [User]? = []
 
 @Relationship
 	var recording: Recording?

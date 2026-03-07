@@ -9,7 +9,7 @@ final class User: Identifiable {
 	var posts: [Post]? = []
 
 	@Relationship(deleteRule: .cascade)
-	var receivedPosts: [Post] = []
+	var receivedPosts: [Post]? = []
 
 	init(name: String, posts: [Post] = [Post]()) {
 		self.name = name

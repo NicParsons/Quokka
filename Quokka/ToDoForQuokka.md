@@ -12,6 +12,8 @@
 
 ## Features
 
+* rewind several seconds when pausing/resuming
+* today view should also show recently imported recordings (regardless of when they were created)
 * conversation/thread view, might require adding recipients property to Post
 * rename file name when assigning author
 * assign author to recording when importing

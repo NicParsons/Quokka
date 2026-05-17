@@ -7,6 +7,7 @@ struct ConversationList: View {
 	@Environment(SessionManager.self) private var session
 	@SceneStorage("selectedConversation") private var selectedUserID: User.ID?
 	@State var selectedPostID: Post.ID? = nil
+	@State var presented = true
 	@Query private var users: [User]
 
 	var body: some View {
@@ -18,9 +19,20 @@ struct ConversationList: View {
 				.listStyle(.sidebar)
 
 				CalendarList(author: selectedUser, selectedPostID: $selectedPostID)
+
+					.inspector(isPresented: $presented) {
+						if let post = selectedPost {
+							PostView(post: post)
+						} // if let
+					} // inspect
 			} // HStack
 			.padding()
 		} // nav view
+		.toolbar {
+			ToolbarItem(placement: .primaryAction) {
+				InspectorButton(presented: $presented)
+			}
+		}
 		.navigationTitle(navigationTitle)
 
 		#if debug
@@ -47,4 +59,38 @@ extension ConversationList {
 			return "Conversations"
 		} // if let
 	} // var
+
+	var selectedPost: Post? {
+		guard let postID = selectedPostID else { return nil }
+		do {
+			var descriptor = FetchDescriptor<Post>(
+				predicate: #Predicate { $0.id == postID }
+			)
+			descriptor.fetchLimit = 1
+			let results = try context.fetch(descriptor)
+			return results.first
+		} catch {
+			#if DEBUG
+			print("Failed to fetch Post with id: \(postID). Error: \(error)")
+			#endif
+			return nil
+		}
+	} // var
 } // extension
+
+
+
+struct InspectorButton: View {
+	@Binding var presented: Bool
+
+	var body: some View {
+Toggle(
+	isOn: $presented) {
+		if presented {
+Label("Hide Inspector", systemImage: "eye")
+		} else {
+Label("Show Inspector", systemImage: "eye.fill")
+		} // end if
+	} // end label
+	} // body
+} // View

@@ -4,8 +4,8 @@ import SwiftData
 struct PostList: View {
 	@Environment(Model.self) private var model
 	@Environment(\.modelContext) private var context
-	@Query private var posts: [Post]
-	let date: Date
+	var posts: [Post]
+	let overlayText: String
 	@Binding var selectedPost: Post?
 	@State private var confirmationDialogIsShown = false
 	@State private var presented: Bool = true
@@ -33,7 +33,7 @@ PostCapsuleView(post: post)
 
 		.overlay(Group {
 			if posts.isEmpty {
-				Text("You haven't recorded a diary entry for \(date.stringWithRelativeFormatting().lowercased()) yet. Hit the “Record” button to get started.")
+				Text(overlayText)
 					.font(.largeTitle)
 			} // end if
 		}) // overlay group
@@ -47,16 +47,4 @@ PostCapsuleView(post: post)
 			}
 			model.delete(postsToDelete, fromContext: context)
 		}
-
-	init(
-		date: Date,
-		selectedPost: Binding<Post?>,
-		sortOrder: SortOrder = .forward
-	) {
-		self.date = date
-		_selectedPost = selectedPost
-		let predicate = Post.predicate(date: date)
-		_posts = Query(filter: predicate, sort: \.date, order: sortOrder)
-	}
-
 } // view

@@ -14,6 +14,7 @@ class Model: NSObject, AVAudioPlayerDelegate {
 	var usesICloud = true
 	var iCloudEnabled = false
 	var documentsDirectory: URL!
+	var recentlyImportedPosts: [Post] = []
 	var currentlyPlayingRecording: Recording?
 
 	var currentlyPlayingURL: URL? {

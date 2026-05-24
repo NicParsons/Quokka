@@ -7,6 +7,7 @@ struct ImportButton: View {
 	@State private var showImporter = false
 	@State private var alertIsShowing = false
 	@State private var error: Error?
+
     var body: some View {
         Button(
 			action: { showImporter = true }) {
@@ -26,7 +27,10 @@ struct ImportButton: View {
 							alertIsShowing = true
 						} else {
 							do {
-								let _ = try model.importRecording(url, toContext: context)
+								let importedPost = try model.importRecording(url, toContext: context)
+								if let post = importedPost {
+									model.recentlyImportedPosts.append(post)
+								} // if let
 							} catch {
 								self.error = error
 								alertIsShowing = true
